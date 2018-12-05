@@ -5,5 +5,8 @@ function chrome_tabs_executeScripts(tab_id, actions){
 }
 
 chrome.browserAction.onClicked.addListener(function(tab){
-	chrome_tabs_executeScripts(tab.ib, [{file: 'videogaze.js'}]);
+	chrome_tabs_executeScripts(tab.ib, [
+		{file: 'general_functions.js'},
+		{file: 'videogaze.js'}
+	]);
 });
