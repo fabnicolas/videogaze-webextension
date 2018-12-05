@@ -1,0 +1,16 @@
+{
+  "name": "VideoGaze extension",
+  "description": "VideoGaze description extension.",
+  "version": "2.0",
+  "permissions": [
+    "activeTab"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "browser_action": {
+    "default_title": "Click to inject VideoGaze JS scripts."
+  },
+  "manifest_version": 2
+}
