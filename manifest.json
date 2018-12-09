@@ -10,5 +10,13 @@
     "default_popup": "popup.html",
     "default_title": "Click to inject VideoGaze JS scripts."
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ]
+    }
+  ],
   "manifest_version": 2
 }

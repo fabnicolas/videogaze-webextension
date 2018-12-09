@@ -22,20 +22,26 @@ var inject_videogaze = function(callback) {
 	});
 }
 
+var message_room=function(param_roomcode){
+	if(param_roomcode === undefined) param_roomcode=null;
+
+	chrome_get_active_tab(function(active_tab_id) {
+		chrome.tabs.sendMessage(active_tab_id, {action: "room", roomcode: param_roomcode}, {}, function(response){
+			console.log(response);
+			document.getElementById('room_details').innerText = 'Room code = '+response.code;
+		});
+	});
+}
+
 var onclick_make_room = function() {
 	inject_videogaze(function() {
-		chrome_get_active_tab(function(active_tab_id) {
-			chrome.tabs.sendMessage(active_tab_id, {action: "room", roomcode: null});
-		});
+		message_room();
 	});
 }
 
 var onclick_join_room = function() {
 	inject_videogaze(function() {
-		chrome_get_active_tab(function(active_tab_id) {
-			console.log(document.getElementById('text_roomcode').value);
-			chrome.tabs.sendMessage(active_tab_id, {action: "room", roomcode: document.getElementById('text_roomcode').value});
-		});
+		message_room(document.getElementById('text_roomcode').value);
 	});
 }
 
