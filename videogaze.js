@@ -1,12 +1,23 @@
 (function() {
 	console.log('Lo script è stato iniettato nella pagina web.');
 
+	chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    if(message.action == "room") {
+      make_room(message.roomcode);
+    }
+  });
+
 	// Ottieni l'oggetto del video player
 	var _videoplayer = document.getElementsByTagName('video')[0];
-	GLOBAL_roomcode=null;
-	make_room(GLOBAL_roomcode, 'extension', window.location.toString(), function(){
-		Room.attach_html5_video_handler(_videoplayer, function(){
-			
+
+	function make_room(roomcode){
+		if(roomcode === undefined) roomcode=null;
+
+		Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
+			if(response.status == 1) {
+				GLOBAL.actual_roomcode=response.message.roomcode;
+				Room.attach_html5_video_handler(_videoplayer, function() {});
+			}
 		});
-	});
+	}
 })();

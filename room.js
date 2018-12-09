@@ -9,6 +9,7 @@
  * 
  * @author Fabio Crispino
 */
+console.log("room");
 
 var DateTimeParser = (function() {
   /**
@@ -25,6 +26,7 @@ var DateTimeParser = (function() {
 
 var RoomHTTPEvents = (function() {
   var _mode = 2; // 0=short polling, 1=long polling, 2=SSE
+  var _backend_url;
 
   /**
    * Utility method to determine repetitivity of a function.
@@ -159,10 +161,12 @@ var RoomHTTPEvents = (function() {
    * @param {array} extra_data - Additional parameters, like {var1: value1}.
    * @param {function} callback - Callback invoked on success (data).
    */
-  var init = function(roomcode, extra_data, callback) {
+  var init = function(backend_url, roomcode, extra_data, callback) {
     if(roomcode === undefined) roomcode = null;
     if(extra_data === undefined) extra_data = null;
     if(callback === undefined) callback = null;
+
+    _backend_url = backend_url;
 
     var fd = new FormData();
 
@@ -174,7 +178,7 @@ var RoomHTTPEvents = (function() {
 
     xhr_fetch_data(
       'POST',
-      GLOBAL_backend_url + 'room.php',
+      _backend_url + 'room.php',
       fd, undefined, {repeat_type: 'onerror', repeat_time: 250}, callback
     );
   }
@@ -204,7 +208,7 @@ var RoomHTTPEvents = (function() {
 
     xhr_fetch_data(
       'POST',
-      GLOBAL_backend_url + 'room.php',
+      _backend_url + 'room.php',
       fd, undefined, {repeat_type: 'onerror', repeat_time: 250}, callback
     );
   }
@@ -226,13 +230,13 @@ var RoomHTTPEvents = (function() {
     if(_mode == 0) {
       xhr_fetch_data(
         'POST',
-        GLOBAL_backend_url + 'room.php',
+        _backend_url + 'room.php',
         fd, undefined, {repeat_type: 'always', repeat_time: 250}, callback
       );
     } else if(_mode == 2) {
       sse_fetch_data(
         'POST',
-        GLOBAL_backend_url + 'room.php',
+        _backend_url + 'room.php',
         fd, undefined, {repeat_type: 'always', repeat_time: 250}, callback
       );
     }
@@ -289,12 +293,13 @@ var Room = (function() {
    * @param {array} extra_data - Additional parameters, like {var1: value1}.
    * @param {function} callback - Callback invoked on success (data).
    */
-  var init = function(roomcode, extra_data, callback) {
+  var init = function(backend_url, roomcode, extra_data, callback) {
+    if(backend_url === undefined) backend_url = 'http://localhost:8080/videogaze-BE';
     if(roomcode === undefined) roomcode = null;
     if(extra_data === undefined) extra_data = null;
     if(callback === undefined) callback = null;
 
-    RoomHTTPEvents.init(roomcode, extra_data, function(response) {
+    RoomHTTPEvents.init(backend_url, roomcode, extra_data, function(response) {
       if(response.status == 1) {
         _roomdata = response.message;
         if(!response.message.hasOwnProperty("roomcode")) _roomdata.roomcode = roomcode;
@@ -409,7 +414,7 @@ var Room = (function() {
                 if(first_time == true) {
                   if(server_sync.stream_isplaying == 1) {
                     event_notrigger(['pause', 'playing', 'seeked'], function() {
-                      _videoplayer.currentTime=(
+                      _videoplayer.currentTime = (
                         (DateTimeParser.get_timestamp() -
                           server_sync.last_isplaying +
                           Math.round(server_sync.stream_ctime * 1000)
@@ -418,7 +423,7 @@ var Room = (function() {
                     });
                   } else {
                     event_notrigger(['pause', 'playing', 'seeked'], function() {
-                      _videoplayer.currentTime=(
+                      _videoplayer.currentTime = (
                         server_sync.stream_ctime
                       );
                     });
@@ -431,7 +436,7 @@ var Room = (function() {
                       _videoplayer.pause();
                     });
                     event_notrigger(['pause', 'playing', 'seeking', 'waiting', 'playing', 'seeked'], function() {
-                      _videoplayer.currentTime=(server_sync.stream_ctime);
+                      _videoplayer.currentTime = (server_sync.stream_ctime);
                     });
                     if(video_wasplaying) event_notrigger('playing', function() {_videoplayer.pause();});
 
@@ -479,7 +484,7 @@ var Room = (function() {
     if(callback === undefined) callback = null;
 
     var actual_time = (new Date()).getTime();
-    _videoplayer=videoplayer;
+    _videoplayer = videoplayer;
 
     _event_handlers['loadeddata'] = function(e) {
       var player_actual_time = (new Date()).getTime();
@@ -525,12 +530,12 @@ var Room = (function() {
       }
     }
 
-    _event_handlers['loadedmetadata']=function(){
-        _videoplayer.play();
-        _videoplayer.pause();
-        console.log("[html5_video_event]", "Loaded metadata");
-        _player_ready=true;
-        setTimeout(function(){request_sync()},1000); // Temporary
+    _event_handlers['loadedmetadata'] = function() {
+      _videoplayer.play();
+      _videoplayer.pause();
+      console.log("[html5_video_event]", "Loaded metadata");
+      _player_ready = true;
+      setTimeout(function() {request_sync()}, 1000); // Temporary
     }
 
     _event_handlers['loadedmetadata'](); // Assuming the video is already loaded into the page
