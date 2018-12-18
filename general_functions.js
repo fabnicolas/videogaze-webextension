@@ -5,4 +5,3 @@ var attach_events = function(target, events){
     target.addEventListener(event_name, events[event_name]);
   }
 }
-console.log("general_functions");

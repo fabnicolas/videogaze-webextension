@@ -10,8 +10,13 @@
     "default_popup": "popup.html",
     "default_title": "Click to inject VideoGaze JS scripts."
   },
+  "background": {
+    "scripts": ["background-general.js"],
+    "persistent": false
+  },
   "content_scripts": [
     {
+      "js": ["cs-videogaze.js"],
       "matches": [
         "http://*/*",
         "https://*/*"

@@ -9,7 +9,6 @@
  * 
  * @author Fabio Crispino
 */
-console.log("room");
 
 var DateTimeParser = (function() {
   /**
