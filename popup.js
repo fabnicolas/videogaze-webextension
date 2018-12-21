@@ -1,21 +1,8 @@
-var chrome_tabs_executeScripts = function(tab_id, actions, final_callback) {
-	var inject = function(tid, script, cb = null) {chrome.tabs.executeScript(tid, script, cb);}
-	var callback = null;
-	for(var i = 0;i < actions.length;i++) callback = inject(tab_id, actions[i], callback);
-	final_callback();
-}
-
-var chrome_get_active_tab = function(callback) {
-	chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-		callback(tabs[0].id);
-	});
-}
-
-var inject_videogaze_once_done = false;
+var is_videogaze_injected = chrome_storage_get_attribute('is_videogaze_injected') || false;
 var inject_videogaze_once = function(callback) {
-	if(!inject_videogaze_once_done) {
+	if(!is_videogaze_injected) {
 		inject_videogaze(callback);
-		inject_videogaze_once_done = true;
+		chrome_storage_set_attribute('is_videogaze_injected', true);
 	} else {
 		console.log("Script already injected.");
 	}
@@ -36,6 +23,7 @@ var on_port_open = function(callback) {
 	if(popup_port == null) {
 		popup_port = chrome.runtime.connect({name: "popup-port"});
 		popup_port.onMessage.addListener(function(message) {
+			console.log(message);
 			if(message.init) callback();
 			if(message.code) document.getElementById('room_details').innerText = 'Room code = ' + message.code;
 		});
@@ -54,16 +42,14 @@ var message_room = function(param_roomcode) {
 	});
 }
 
-var onclick_make_room = function() {
-	inject_videogaze_once(function() {
-		message_room();
-	});
-}
+var onclick_make_room = function() {inject_videogaze_once(function() {message_room();});}
 
 var onclick_join_room = function() {
-	inject_videogaze_once(function() {
-		message_room(document.getElementById('text_roomcode').value);
-	});
+	inject_videogaze_once(function() {message_room(document.getElementById('text_roomcode').value);});
+}
+
+window.onload = function() {
+	on_port_open(function() {popup_port.postMessage({action: 'getdata'});});
 }
 
 
