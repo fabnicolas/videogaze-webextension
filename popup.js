@@ -7,13 +7,12 @@ var inject_videogaze_once = function(callback) {
 		console.log("Script already injected.");
 	}
 }
+
 var inject_videogaze = function(callback) {
 	chrome_get_active_tab(function(active_tab_id) {
-		chrome_tabs_executeScripts(active_tab_id, [
-			{file: 'general_functions.js'},
-			{file: 'global.js'},
-			{file: 'room.js'}
-		], callback);
+		chrome_tabs_executeScripts(active_tab_id, ['general_functions.js', 'global.js', 'room.js'], function(){
+			callback();
+		});
 	});
 }
 
@@ -23,7 +22,6 @@ var on_port_open = function(callback) {
 	if(popup_port == null) {
 		popup_port = chrome.runtime.connect({name: "popup-port"});
 		popup_port.onMessage.addListener(function(message) {
-			console.log(message);
 			if(message.init) callback();
 			if(message.code) document.getElementById('room_details').innerText = 'Room code = ' + message.code;
 		});
@@ -42,7 +40,9 @@ var message_room = function(param_roomcode) {
 	});
 }
 
-var onclick_make_room = function() {inject_videogaze_once(function() {message_room();});}
+var onclick_make_room = function() {
+	inject_videogaze_once(function() {console.log("Invoked");message_room();});
+}
 
 var onclick_join_room = function() {
 	inject_videogaze_once(function() {message_room(document.getElementById('text_roomcode').value);});
@@ -51,8 +51,6 @@ var onclick_join_room = function() {
 window.onload = function() {
 	on_port_open(function() {popup_port.postMessage({action: 'getdata'});});
 }
-
-
 
 
 

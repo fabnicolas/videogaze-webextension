@@ -121,11 +121,12 @@ var RoomHTTPEvents = (function() {
     if(callback === undefined) callback = null;
 
     if(typeof (EventSource) !== 'undefined') {
-      var source = new EventSource(url +
-        "?mode=" + form_data.get('mode') + "&roomcode=" + form_data.get('roomcode')
-      );
+      var _loaded_url = url +
+      "?mode=" + form_data.get('mode') + "&roomcode=" + form_data.get('roomcode');
+
+      var source = new EventSource(_loaded_url);
       source.onerror = function(event) {
-        console.log('SSE error:' + method + ",URL=" + url + ",form_data=" + form_data + ",event=" + JSON.stringify(event));
+        console.log('SSE error:' + _loaded_url + " | "+JSON.stringify(event));
         source.close();
         if(repeat_checktype(repeat_data, 'onerror') || repeat_checktype(repeat_data, 'always')) {
           setTimeout(
@@ -560,3 +561,5 @@ var Room = (function() {
     request_sync: request_sync,
   }
 })();
+
+console.log("Called");

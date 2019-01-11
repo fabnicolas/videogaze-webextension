@@ -1,3 +1,5 @@
+/* JS utilities */
+
 var attach_events = function(target, events){
   var _keys_events=Object.keys(events);
   for(var i=0;i<_keys_events.length;i++){
