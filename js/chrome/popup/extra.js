@@ -36,9 +36,3 @@ var chrome_tabs_executeScripts = function(tab_id, actions, final_callback) {
 		.executeScripts(actions)
 		.then(final_callback);
 }
-
-var chrome_get_active_tab = function(callback) {
-	chrome.tabs.query({currentWindow: true, active: true}, function(tabs) {
-		callback(tabs[0].id);
-	});
-}

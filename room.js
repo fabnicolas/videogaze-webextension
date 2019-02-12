@@ -540,7 +540,7 @@ var Room = (function() {
 
     _event_handlers['loadedmetadata'](); // Assuming the video is already loaded into the page
 
-    attach_events(_videoplayer, _event_handlers);
+    JSUtils.attach_events(_videoplayer, _event_handlers);
 
     if(callback != null) callback();
   }
@@ -562,4 +562,14 @@ var Room = (function() {
   }
 })();
 
-console.log("Called");
+
+function make_room(roomcode, callback) {
+  if(roomcode === undefined) roomcode = null;
+
+  Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
+    if(response.status == 1) {
+      GLOBAL.actual_roomcode = response.message.roomcode;
+      Room.attach_html5_video_handler(_videoplayer, function() {callback(GLOBAL.actual_roomcode)});
+    }
+  });
+}

@@ -1,18 +1,22 @@
-var is_videogaze_injected = chrome_storage_get_attribute('is_videogaze_injected') || false;
+var video_tabs = [];
+
+console.log("Popup injected")
+
+// Checks for videogaze injection
 var inject_videogaze_once = function(callback) {
-	if(!is_videogaze_injected) {
-		inject_videogaze(callback);
-		chrome_storage_set_attribute('is_videogaze_injected', true);
-	} else {
-		console.log("Script already injected.");
-	}
+	if(video_tabs)
+	inject_videogaze(callback);
 }
 
 var inject_videogaze = function(callback) {
 	chrome_get_active_tab(function(active_tab_id) {
-		chrome_tabs_executeScripts(active_tab_id, ['general_functions.js', 'global.js', 'room.js'], function(){
-			callback();
-		});
+		chrome_tabs_executeScripts(
+			active_tab_id,
+			['js/chrome/base.js', 'cs/cs.js', 'js/utils.js', 'global.js', 'room.js'],
+			function(){
+				callback();
+			}
+		);
 	});
 }
 
@@ -23,7 +27,12 @@ var on_port_open = function(callback) {
 		popup_port = chrome.runtime.connect({name: "popup-port"});
 		popup_port.onMessage.addListener(function(message) {
 			if(message.init) callback();
-			if(message.code) document.getElementById('room_details').innerText = 'Room code = ' + message.code;
+			if(message.code){
+				document.getElementById('room_details').innerText = 'Room code = ' + message.code;
+			}
+			if(message.video_tabs){
+				video_tabs = message.video_tabs;
+			}
 		});
 		popup_port.postMessage({init: true});
 	} else {
@@ -41,7 +50,7 @@ var message_room = function(param_roomcode) {
 }
 
 var onclick_make_room = function() {
-	inject_videogaze_once(function() {console.log("Invoked");message_room();});
+	inject_videogaze_once(function() {message_room();});
 }
 
 var onclick_join_room = function() {
@@ -49,7 +58,9 @@ var onclick_join_room = function() {
 }
 
 window.onload = function() {
-	on_port_open(function() {popup_port.postMessage({action: 'getdata'});});
+	on_port_open(function() {
+		popup_port.postMessage({action: 'getdata'});
+	});
 }
 
 

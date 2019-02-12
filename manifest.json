@@ -8,21 +8,12 @@
     "storage"
   ],
   "browser_action": {
-    "default_popup": "popup.html",
+    "default_popup": "popup/popup.html",
     "default_title": "Click to inject VideoGaze JS scripts."
   },
   "background": {
-    "scripts": ["background-general.js"],
+    "scripts": ["js/chrome/base.js", "background/background.js"],
     "persistent": false
   },
-  "content_scripts": [
-    {
-      "js": ["cs-videogaze.js"],
-      "matches": [
-        "http://*/*",
-        "https://*/*"
-      ]
-    }
-  ],
   "manifest_version": 2
 }
