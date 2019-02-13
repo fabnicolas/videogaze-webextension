@@ -5,15 +5,15 @@
   "permissions": [
     "activeTab",
     "tabs",
-    "storage"
+    "storage",
+    "<all_urls>"
   ],
   "browser_action": {
     "default_popup": "popup/popup.html",
     "default_title": "Click to inject VideoGaze JS scripts."
   },
   "background": {
-    "scripts": ["js/chrome/base.js", "background/background.js"],
-    "persistent": false
+    "scripts": ["js/chrome/base.js", "background/background.js"]
   },
   "manifest_version": 2
 }

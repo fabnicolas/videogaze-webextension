@@ -1,12 +1,12 @@
 /* Chrome Extension utility functions */
 
 var ScriptExecution = (function(tab_id) {
-	var tab_id;
+	var _tab_id;
 
 	var executeScripts = function(scripts) {
-		_this=this;
+		var __tab_id=_tab_id;
 		return Promise.all(scripts.map(function(script) {
-			return executeScript(_this.tab_id, script);
+			return executeScript(__tab_id, script);
 		})).then(function(){
 			return new Promise(resolve => resolve());
 		});
@@ -21,7 +21,7 @@ var ScriptExecution = (function(tab_id) {
 	}
 
 	function init(tab_id){
-		this.tab_id=tab_id;
+		_tab_id=tab_id;
 	}
 
 	init(tab_id);
