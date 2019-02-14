@@ -2,11 +2,20 @@
   console.log("background.js injected automatically.");
 
   var port_popup = null, port_cs = null;
+  var tabs = {}
   var video_tabs = {};
 
+  // When extension loads, map inside tabs all URLs of all opened tabs
+  chrome.tabs.getAllInWindow(null, function(all_tabs){
+    for(var i=0; i<all_tabs.length; i++){
+      tabs[all_tabs[i].id]=all_tabs[i].url;             
+    }
+  });
+
+  // When an URL changes, reflect the change into tabs object
   chrome.tabs.onUpdated.addListener(function(tab_id, change_info, tab) {
     if(change_info.status == "loading" && change_info.url) {
-      console.log("URL cambiato in: " + change_info.url + " nella tab: " + tab_id);
+      tabs[tab_id]=change_info.url;
     }
   });
 
@@ -28,7 +37,7 @@
     // If message has CODE, store roomcode and tell popup script to show the roomcode
     if(message.code) {
       chrome_get_active_tab(actual_tab => {
-        video_tabs[actual_tab] = {roomcode: message.code};
+        video_tabs[actual_tab.id] = {roomcode: message.code};
         port_popup.postMessage({video_tabs: video_tabs});
       });
     }

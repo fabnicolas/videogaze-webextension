@@ -4,15 +4,14 @@ var popup_port = null;
 // Checks for videogaze injection
 var inject_videogaze_once = function(callback) {
 	chrome_get_active_tab(actual_tab => {
-		if(!_video_tabs[actual_tab]) inject_videogaze(callback);
+		if(!_video_tabs[actual_tab.id]) inject_videogaze(callback);
 	});
 }
 
 var inject_videogaze = function(callback) {
-	chrome_get_active_tab(active_tab_id => {
-		console.log("ACTIVE_TAB_ID="+active_tab_id)
+	chrome_get_active_tab(actual_tab => {
 		chrome_tabs_executeScripts(
-			active_tab_id,
+			actual_tab.id,
 			['/js/chrome/base.js', '/cs/cs.js', '/js/utils.js', '/global.js', '/room.js'],
 			function(){callback();}
 		);
@@ -27,9 +26,9 @@ var on_port_open = function(callback) {
 			if(message.video_tabs){
 				_video_tabs = message.video_tabs;
 				chrome_get_active_tab(actual_tab => {
-					if(_video_tabs[actual_tab]){
+					if(_video_tabs[actual_tab.id]){
 						document.getElementById('room_details').innerText = 'Room code = ' + 
-							_video_tabs[actual_tab].roomcode;
+							_video_tabs[actual_tab.id].roomcode;
 					}
 				});
 			}
