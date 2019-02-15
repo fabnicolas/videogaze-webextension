@@ -563,12 +563,12 @@ var Room = (function() {
 })();
 
 
-function make_room(roomcode, callback) {
+function make_room(roomcode, videoplayer, callback) {
   if(roomcode === undefined) roomcode = null;
 
   Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
     if(response.status == 1) {
-      Room.attach_html5_video_handler(_videoplayer, function() {callback(response.message.roomcode)});
+      Room.attach_html5_video_handler(videoplayer, function() {callback(response.message.roomcode)});
     }
   });
 }
