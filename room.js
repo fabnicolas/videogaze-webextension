@@ -568,8 +568,7 @@ function make_room(roomcode, callback) {
 
   Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
     if(response.status == 1) {
-      GLOBAL.actual_roomcode = response.message.roomcode;
-      Room.attach_html5_video_handler(_videoplayer, function() {callback(GLOBAL.actual_roomcode)});
+      Room.attach_html5_video_handler(_videoplayer, function() {callback(response.message.roomcode)});
     }
   });
 }

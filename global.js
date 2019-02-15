@@ -1,5 +1,4 @@
 var GLOBAL = {};
-GLOBAL.actual_roomcode = null;
 
 // Production
 GLOBAL.backend_url = 'https://finalgalaxy.altervista.org/videogaze/videogaze-BE/';
