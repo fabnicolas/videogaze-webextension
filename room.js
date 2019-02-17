@@ -136,8 +136,8 @@ var RoomHTTPEvents = (function() {
       };
       source.onmessage = function(event) {
         var server_message = JSON.parse(event.data);
-        console.log(server_message);
         if(!(server_message.status == 0 && server_message.message == "SSE_CLOSE_CONNECTION")) {
+          //console.log("SSE is actually working. 30 seconds timer.");
           callback(server_message);
         } else {
           source.close();
@@ -314,13 +314,16 @@ var Room = (function() {
    * @param {string} request_type - Request type (Like play, pause, change time).
    * @param {string} request_value - Request value (Like play value, pause value, current time).
    * @param {array} extra_data - Additional parameters, like {var1: value1}.
+   * @param {callback} callback - Function called when server responds (with data as parameter).
    */
-  var http_room_request = function(request_type, request_value, extra_data) {
+  var http_room_request = function(request_type, request_value, extra_data, callback) {
     if(extra_data === undefined) extra_data = null;
+    if(callback === undefined) callback = null;
 
     _is_attempting_requests = true;
-    RoomHTTPEvents.request(_roomdata.roomcode, request_type, request_value, extra_data, function() {
+    RoomHTTPEvents.request(_roomdata.roomcode, request_type, request_value, extra_data, function(data) {
       _is_attempting_requests = false;
+      if(callback != null) callback(data);
     });
   }
 
@@ -341,7 +344,14 @@ var Room = (function() {
    * @param {float} videotime - Time of the video.
    */
   var set_isplaying = function(isplaying, videotime) {
-    http_room_request('set_isplaying', (isplaying == true ? 1 : 0), {'request_videotime': round_time(videotime, 6)});
+    http_room_request(
+      'set_isplaying',
+      (isplaying == true ? 1 : 0),
+      {'request_videotime': round_time(videotime, 6)},
+      function(data){
+        _local_last_ctime = DateTimeParser.get_timestamp(data.message.last_ctime);
+      }
+    );
   }
 
   /**
@@ -403,7 +413,7 @@ var Room = (function() {
             _sync_ignore_events = true;
 
             server_sync = server_sync.message;
-            //console.log(server_sync);
+            console.log(server_sync);
             if(_player_ready == true) {
               if(server_sync.hasOwnProperty("stream_ctime") &&
                 server_sync.hasOwnProperty("last_ctime") &&
@@ -423,9 +433,7 @@ var Room = (function() {
                     });
                   } else {
                     event_notrigger(['pause', 'playing', 'seeked'], function() {
-                      _videoplayer.currentTime = (
-                        server_sync.stream_ctime
-                      );
+                      _videoplayer.currentTime = server_sync.stream_ctime;
                     });
                   }
                   _local_last_ctime = server_sync.last_ctime;
@@ -440,6 +448,8 @@ var Room = (function() {
                     });
                     if(video_wasplaying) event_notrigger('playing', function() {_videoplayer.pause();});
 
+                    console.log(server_sync.last_ctime);
+                    console.log(_local_last_ctime);
                     console.log("Difference: " + (server_sync.last_ctime - _local_last_ctime));
                     _local_last_ctime = server_sync.last_ctime;
                   }
@@ -568,6 +578,7 @@ function make_room(roomcode, videoplayer, callback) {
 
   Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
     if(response.status == 1) {
+      console.log(response.message.roomcode);
       Room.attach_html5_video_handler(videoplayer, function() {callback(response.message.roomcode)});
     }
   });

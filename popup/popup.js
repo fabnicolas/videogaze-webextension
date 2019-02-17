@@ -3,9 +3,9 @@ var popup_port = null;
 
 var on_port_open = function(callback) {
   if(popup_port == null) {
-    popup_port = chrome.runtime.connect({name: "popup-port"});
+    popup_port = chrome.runtime.connect({name: 'popup-port'});
     popup_port.onMessage.addListener(function(message) {
-      if(message.init) callback();
+      if(message.is_init_completed) callback();
       if(message.video_tabs) {
         _video_tabs = message.video_tabs;
         chrome_get_active_tab(actual_tab => {
@@ -32,11 +32,11 @@ var port_message = function(message_to_send) {
 }
 
 var onclick_make_room = function() {
-  port_message({action: "room", roomcode: null});
+  port_message({action: 'room', roomcode: null});
 }
 
 var onclick_join_room = function() {
-  port_message({action: "room", roomcode: document.getElementById('text_roomcode').value});
+  port_message({action: 'room', roomcode: document.getElementById('text_roomcode').value});
 }
 
 window.onload = function() {

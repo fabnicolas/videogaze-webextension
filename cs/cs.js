@@ -1,9 +1,6 @@
 (function() {
 	console.log("cs.js injected...");
 
-	// Detect video player [Works for most websites]
-	var _videoplayer = document.getElementsByTagName('video')[0];
-
 	/* cs-port connects with background script, which is indirectly connected to popup script */
 	var port_cs = chrome.runtime.connect({name: "cs-port"});
 	port_cs.onMessage.addListener(function(message) {
@@ -14,5 +11,26 @@
 				port_cs.postMessage({code: roomcode});
 			});
 	});
-	port_cs.postMessage({init:true});
+
+	_videoplayer = null;
+
+	var detect_video_player = function() {
+		if((_videoplayer = document.getElementsByTagName('video')[0]) === undefined){
+			setTimeout(tryhard, 500);
+		} else {
+			console.log("Video player detected. Attaching event loadedmetadata.")
+			port_cs.postMessage({init: true})
+			//_videoplayer.addEventListener('canplay', function(e) {
+			//	console.log("Loadedmetadata triggered. Sending {init: true}...")
+			//	port_cs.postMessage({init: true});
+			//});
+		};
+	}
+	
+	if(document.readyState == "complete"){
+		detect_video_player();
+	}else{
+		window.onload=detect_video_player();
+	}
+
 })();
