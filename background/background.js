@@ -1,7 +1,7 @@
 (function() {
   console.log("background.js injected automatically.");
 
-  var port_popup = null, port_cs = null;
+  var port_popup = null, port_cs = {};
   var tabs = {}
   var video_tabs = {};
 
@@ -32,7 +32,7 @@
   }
 
   // When extension loads, map inside tabs all URLs of all opened tabs
-  chrome.tabs.getAllInWindow(null, function(all_tabs) {
+  chrome.tabs.query({currentWindow: true}, function(all_tabs) {
     for(var i = 0;i < all_tabs.length;i++) {
       tabs[all_tabs[i].id] = all_tabs[i].url;
     }
@@ -44,15 +44,17 @@
     // When an URL changes, reflect the change into tabs object
     if(change_info.status == "loading" && change_info.url)
       tabs[tab_id] = change_info.url;
-    
+
     // When the page is reloaded: if the tab was a video tab, re-inject VideoGaze again
     if(change_info.status == "complete" && change_info.url === undefined) {
       if(video_tabs[tab_id]) {
         console.log("Trying to inject VideoGaze again");
         inject_videogaze(function() {
-          port_cs.postMessage({
-            action: "room",
-            roomcode: video_tabs[tab_id].roomcode
+          chrome_get_active_tab(actual_tab => {
+            port_cs[actual_tab.id].postMessage({
+              action: "room",
+              roomcode: video_tabs[tab_id].roomcode
+            });
           });
         }, tab_id);
       }
@@ -69,9 +71,11 @@
 
     // Tell CS to perform room initialization
     if(message.action == "room") {
-      var action = function() {port_cs.postMessage(message);}
-      if(port_cs == null) inject_videogaze_once(action);
-      else action();
+      chrome_get_active_tab(actual_tab => {
+        var action = function() {port_cs[actual_tab.id].postMessage(message);}
+        if(port_cs[actual_tab.id] == null) inject_videogaze_once(action);
+        else action();
+      });
     }
 
     if(message.action == "getdata")
@@ -98,8 +102,9 @@
       port_popup = connecting_port;
       port_popup.onMessage.addListener(handler_popup_port);
     } else if(connecting_port.name == "cs-port") {
-      port_cs = connecting_port;
-      port_cs.onMessage.addListener(handler_cs_port);
+      var cs_port_id = connecting_port.sender.tab.id;
+      port_cs[cs_port_id] = connecting_port;
+      port_cs[cs_port_id].onMessage.addListener(handler_cs_port);
     }
   });
 })();

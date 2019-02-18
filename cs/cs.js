@@ -19,15 +19,19 @@
 			setTimeout(tryhard, 500);
 		} else {
 			console.log("Video player detected. Attaching event loadedmetadata.")
-			port_cs.postMessage({init: true})
-			//_videoplayer.addEventListener('canplay', function(e) {
-			//	console.log("Loadedmetadata triggered. Sending {init: true}...")
-			//	port_cs.postMessage({init: true});
-			//});
+			if(_videoplayer.readyState==4){
+				port_cs.postMessage({init: true});
+			}else{
+				_videoplayer.addEventListener('canplay', function onCanplay_done(e) {
+					port_cs.postMessage({init: true});
+					_videoplayer.removeEventListener('canplay', onCanplay_done);
+				});
+			}
 		};
 	}
 	
-	if(document.readyState == "complete"){
+	if(document.readyState == "ready" || document.readyState == "complete"){
+		console.log("test");
 		detect_video_player();
 	}else{
 		window.onload=detect_video_player();
