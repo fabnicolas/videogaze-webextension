@@ -48,7 +48,6 @@
     // When the page is reloaded: if the tab was a video tab, re-inject VideoGaze again
     if(change_info.status == "complete" && change_info.url === undefined) {
       if(video_tabs[tab_id]) {
-        console.log("Trying to inject VideoGaze again");
         inject_videogaze(function() {
           chrome_get_active_tab(actual_tab => {
             port_cs[actual_tab.id].postMessage({

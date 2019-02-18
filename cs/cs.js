@@ -1,5 +1,5 @@
 (function() {
-	console.log("cs.js injected...");
+	console.log("VideoGaze Content Script (cs.js) injected into webpage!");
 
 	/* cs-port connects with background script, which is indirectly connected to popup script */
 	var port_cs = chrome.runtime.connect({name: "cs-port"});
@@ -31,7 +31,6 @@
 	}
 	
 	if(document.readyState == "ready" || document.readyState == "complete"){
-		console.log("test");
 		detect_video_player();
 	}else{
 		window.onload=detect_video_player();

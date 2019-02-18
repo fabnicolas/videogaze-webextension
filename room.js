@@ -137,7 +137,7 @@ var RoomHTTPEvents = (function() {
       source.onmessage = function(event) {
         var server_message = JSON.parse(event.data);
         if(!(server_message.status == 0 && server_message.message == "SSE_CLOSE_CONNECTION")) {
-          //console.log("SSE is actually working. 30 seconds timer.");
+          console.log("SSE is actually working. 30 seconds timer.");
           callback(server_message);
         } else {
           source.close();
@@ -413,7 +413,6 @@ var Room = (function() {
             _sync_ignore_events = true;
 
             server_sync = server_sync.message;
-            console.log(server_sync);
             if(_player_ready == true) {
               if(server_sync.hasOwnProperty("stream_ctime") &&
                 server_sync.hasOwnProperty("last_ctime") &&
@@ -448,9 +447,6 @@ var Room = (function() {
                     });
                     if(video_wasplaying) event_notrigger('playing', function() {_videoplayer.pause();});
 
-                    console.log(server_sync.last_ctime);
-                    console.log(_local_last_ctime);
-                    console.log("Difference: " + (server_sync.last_ctime - _local_last_ctime));
                     _local_last_ctime = server_sync.last_ctime;
                   }
                 }
@@ -578,7 +574,6 @@ function make_room(roomcode, videoplayer, callback) {
 
   Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
     if(response.status == 1) {
-      console.log(response.message.roomcode);
       Room.attach_html5_video_handler(videoplayer, function() {callback(response.message.roomcode)});
     }
   });

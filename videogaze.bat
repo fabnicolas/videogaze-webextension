@@ -1,0 +1,1 @@
+git archive --format=zip HEAD -o videogaze.zip
