@@ -3,17 +3,18 @@
 var ScriptExecution = (function(tab_id) {
 	var _tab_id;
 
-	var executeScripts = function(scripts) {
+	var executeScripts = function(actions) {
 		var __tab_id=_tab_id;
-		return Promise.all(scripts.map(function(script) {
-			return executeScript(__tab_id, script);
+		return Promise.all(actions.map(function(action) {
+			action.runAt = 'document_end';
+			return executeScript(__tab_id, action);
 		})).then(function(){
 			return new Promise(resolve => resolve());
 		});
 	}
 
-	function executeScript(tab_id, path) {
-		return promiseTo(chrome.tabs.executeScript, tab_id, {file: path, runAt: 'document_end'});
+	function executeScript(tab_id, action) {
+		return promiseTo(chrome.tabs.executeScript, tab_id, action);
 	}
 
 	function promiseTo(fn, tab_id, info) {

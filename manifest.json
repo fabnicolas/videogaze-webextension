@@ -6,6 +6,7 @@
     "activeTab",
     "tabs",
     "storage",
+    "webNavigation",
     "<all_urls>"
   ],
   "browser_action": {

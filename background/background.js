@@ -17,7 +17,13 @@
     var inject_videogaze_func = function(_callback, _tab_id) {
       chrome_tabs_executeScripts(
         _tab_id,
-        ['/js/chrome/base.js', '/cs/cs.js', '/js/utils.js', '/global.js', '/room.js'],
+        [
+          {file: '/js/chrome/base.js', allFrames: true},
+          {file: '/js/utils.js', allFrames: true},
+          {file: '/global.js', allFrames: true},
+          {file: '/room.js', allFrames: true},        
+          {file: '/cs/cs.js', allFrames: true},
+        ],
         function() {_callback();}
       );
     }
