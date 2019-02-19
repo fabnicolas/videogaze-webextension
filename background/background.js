@@ -1,7 +1,7 @@
 (function() {
   console.log("background.js injected automatically.");
 
-  var port_popup = null, port_cs = {};
+  var port_popup = null, port_cs = {}, port_detector = {};
   var tabs = {}
   var video_tabs = {};
 
@@ -17,15 +17,12 @@
     var inject_videogaze_func = function(_callback, _tab_id) {
       chrome_tabs_executeScripts(
         _tab_id,
-        [
-          {file: '/js/chrome/base.js', allFrames: true},
-          {file: '/js/utils.js', allFrames: true},
-          {file: '/global.js', allFrames: true},
-          {file: '/room.js', allFrames: true},        
-          {file: '/cs/cs.js', allFrames: true},
-        ],
-        function() {_callback();}
-      );
+        [{file: '/cs/video_detector.js', allFrames: true}],
+        function() {
+          video_tabs[_tab_id].on_frame_id_ready = _callback;
+          console.log(video_tabs);
+        }
+      )
     }
 
     if(tab_id == null) {
@@ -94,11 +91,30 @@
     // If message has CODE, store roomcode and tell popup script to show the roomcode
     if(message.code) {
       chrome_get_active_tab(actual_tab => {
-        video_tabs[actual_tab.id] = {roomcode: message.code};
+        video_tabs[actual_tab.id].roomcode = message.code;
         port_popup.postMessage({video_tabs: video_tabs});
       });
     }
   };
+
+  var handler_detector_port = function(message) {
+    if(message.video_detected) {
+      chrome_get_active_tab(actual_tab => {
+        var target_frame_id = video_tabs[actual_tab.id].frame_id;
+        chrome_tabs_executeScripts(
+          actual_tab.id,
+          [
+            {file: '/js/chrome/base.js', frameId: target_frame_id},
+            {file: '/js/utils.js', frameId: target_frame_id},
+            {file: '/global.js', frameId: target_frame_id},
+            {file: '/room.js', frameId: target_frame_id},
+            {file: '/cs/cs.js', frameId: target_frame_id},
+          ],
+          function() {video_tabs[actual_tab.id].on_frame_id_ready();}
+        );
+      });
+    }
+  }
 
 
   // Initialize ports. Handle popup script and content script connections.
@@ -110,6 +126,13 @@
       var cs_port_id = connecting_port.sender.tab.id;
       port_cs[cs_port_id] = connecting_port;
       port_cs[cs_port_id].onMessage.addListener(handler_cs_port);
+    } else if(connecting_port.name == "port-detector") {
+      var detector_port_id = connecting_port.sender.tab.id;
+      var detector_frame_id = connecting_port.sender.frameId;
+      port_detector[detector_port_id] = connecting_port;
+      if(video_tabs[detector_port_id] === undefined) video_tabs[detector_port_id] = {};
+      video_tabs[detector_port_id].frame_id = detector_frame_id;
+      port_detector[detector_port_id].onMessage.addListener(handler_detector_port);
     }
   });
 })();
