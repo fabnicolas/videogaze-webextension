@@ -36,7 +36,7 @@
         videoplayer_detected(videoplayer);
       } else {
         videoplayer.addEventListener('canplay', function onCanplay_done(e) {
-          do_stuff();
+          videoplayer_detected(videoplayer);
           videoplayer.removeEventListener('canplay', onCanplay_done);
         });
       }
