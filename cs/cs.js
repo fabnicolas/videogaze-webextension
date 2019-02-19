@@ -3,8 +3,8 @@
 
 	var videoplayer = document.getElementsByTagName('video')[0];
 
-	/* cs-port connects with background script, which is indirectly connected to popup script */
-	var port_cs = chrome.runtime.connect({name: "cs-port"});
+	/* port-cs connects with background script, which is indirectly connected to popup script */
+	var port_cs = chrome.runtime.connect({name: "port-cs"});
 	port_cs.onMessage.addListener(function(message) {
 		// If background script sends action "room"
 		if(message.action == "room") {

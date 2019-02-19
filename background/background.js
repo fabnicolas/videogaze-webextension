@@ -20,7 +20,6 @@
         [{file: '/cs/video_detector.js', allFrames: true}],
         function() {
           video_tabs[_tab_id].on_frame_id_ready = _callback;
-          console.log(video_tabs);
         }
       )
     }
@@ -119,10 +118,10 @@
 
   // Initialize ports. Handle popup script and content script connections.
   chrome.runtime.onConnect.addListener(function(connecting_port) {
-    if(connecting_port.name == "popup-port") {
+    if(connecting_port.name == "port-popup") {
       port_popup = connecting_port;
       port_popup.onMessage.addListener(handler_popup_port);
-    } else if(connecting_port.name == "cs-port") {
+    } else if(connecting_port.name == "port-cs") {
       var cs_port_id = connecting_port.sender.tab.id;
       port_cs[cs_port_id] = connecting_port;
       port_cs[cs_port_id].onMessage.addListener(handler_cs_port);

@@ -14,28 +14,26 @@
     }
   }
 
-  var on_video_player_ready = function(callback) {
+  var detect_video = function(callback) {
     videoplayer = null;
     if((videoplayer = document.getElementsByTagName('video')[0]) === undefined) {
-      setTimeout(on_video_player_ready.bind(callback), 500);
+      setTimeout(detect_video.bind(callback), 500);
     } else {
-      console.log("Ho trovato il video!");
+      // Video is found!
       callback(videoplayer);
     }
   }
 
   var start_video_detection = function() {
-    on_video_player_ready(function(videoplayer) {
-      console.log(videoplayer);
-
-      var do_stuff = function() {
+    detect_video(function(videoplayer) {
+      var videoplayer_detected = function(_videoplayer) {
         open_port(function() {
-          port_detector.sendMessage({video_detected: true, videoplayer: videoplayer});
+          port_detector.sendMessage({video_detected: true, videoplayer: _videoplayer});
         });
       }
 
       if(videoplayer.readyState == 4) {
-        do_stuff();
+        videoplayer_detected(videoplayer);
       } else {
         videoplayer.addEventListener('canplay', function onCanplay_done(e) {
           do_stuff();

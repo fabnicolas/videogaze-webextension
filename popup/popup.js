@@ -3,7 +3,7 @@ var popup_port = null;
 
 var on_port_open = function(callback) {
   if(popup_port == null) {
-    popup_port = chrome.runtime.connect({name: 'popup-port'});
+    popup_port = chrome.runtime.connect({name: 'port-popup'});
     popup_port.onMessage.addListener(function(message) {
       if(message.is_init_completed) callback();
       if(message.video_tabs) {
