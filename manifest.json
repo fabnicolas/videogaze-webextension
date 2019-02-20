@@ -1,4 +1,10 @@
 {
+  "applications": {
+    "gecko": {
+      "id": "VideoGaze@fabnicolas.net",
+      "strict_min_version": "42.0"
+    }
+  },
   "name": "VideoGaze extension",
   "description": "VideoGaze description extension.",
   "version": "0.0.0.4",
@@ -14,7 +20,11 @@
     "default_title": "Click to inject VideoGaze JS scripts."
   },
   "background": {
-    "scripts": ["js/chrome/base.js", "js/chrome/extra.js", "background/background.js"]
+    "scripts": [
+      "js/chrome/base.js",
+      "js/chrome/extra.js",
+      "background/background.js"
+    ]
   },
   "manifest_version": 2
 }

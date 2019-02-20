@@ -3,3 +3,4 @@ notes.js
 crxmake.sh
 legacy/
 *.zip
+*.xpi
