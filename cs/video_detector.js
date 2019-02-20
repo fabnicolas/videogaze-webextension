@@ -43,9 +43,24 @@
     });
   }
 
+  var clearAllIntervals = function(callback) {
+    if(callback === undefined) callback = null;
+    chrome_storage_get_attribute("clear_all_intervals", can_clear => {
+      if(can_clear) for(var i = 1;i < 999999;i++) window.clearInterval(i);
+      if(callback != null) callback();
+    })
+  }
+
+
   if(document.readyState == "ready" || document.readyState == "complete") {
-    start_video_detection();
+    clearAllIntervals(function(){
+      start_video_detection();
+    });
   } else {
-    window.onload = start_video_detection();
+    window.onload = function() {
+      clearAllIntervals(function(){
+        start_video_detection();
+      });
+    }
   }
 })();

@@ -34,8 +34,12 @@
     var inject_videogaze_func = function(_callback, _tab_id) {
       chrome_tabs_executeScripts(
         _tab_id,
-        [{file: '/cs/video_detector.js', allFrames: true}],
+        [
+          {file: '/js/chrome/storage.js', allFrames: true},
+          {file: '/cs/video_detector.js', allFrames: true}
+        ],
         function() {
+          if(video_tabs[_tab_id] === undefined) video_tabs[_tab_id] = {};
           video_tabs[_tab_id].on_frame_id_ready = _callback;
         }
       )

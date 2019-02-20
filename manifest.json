@@ -26,5 +26,6 @@
       "background/background.js"
     ]
   },
+  "options_page": "options/options.html",
   "manifest_version": 2
 }

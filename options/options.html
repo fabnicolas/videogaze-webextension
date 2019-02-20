@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>VideoGaze Extension Options</title>
+</head>
+
+<body>
+  <div style="white-space: pre-line">
+    <h1>VideoGaze Extension Options</h1>
+
+    <input type="checkbox" id="clear_all_intervals"/> Clear all intervals after page load 
+
+    <i>Some webpages uses setInterval functions to do jobs like invoking console.clear every some ms.
+      Not only it makes console empty and unusable for debugging purposes (Except in Chrome by ticking 'Preserve logs') but it also slowdown your PC.
+      This is because the same function is invoked an insane amount of times as long as the page is running, each some ms. CPU would be 98% busy executing this code.
+      This option allows you to STOP these functions.
+      This option works ONLY in VideoGaze-injected webpages. That means that other webpages will not be affected.
+    
+      Default value: <b>disabled</b>.
+
+      BE CAREFUL! Some websites are coded in their logic with "interval functions". Disable this if these websites do not work properly!</i>
+
+  </div>
+  <button id="save">Save settings!</button>
+  <script type="text/javascript" src="../js/chrome/base.js"></script>
+  <script type="text/javascript" src="../js/chrome/storage.js"></script>
+  <script type="text/javascript" src="./options.js"></script>
+</body>
+
+</html>
