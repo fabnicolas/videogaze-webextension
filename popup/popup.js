@@ -43,7 +43,12 @@ window.onload = function() {
   port_message({action: 'getdata'});
 }
 
-
-
 document.getElementById('button_make_room').addEventListener('click', onclick_make_room);
 document.getElementById('button_join_room').addEventListener('click', onclick_join_room);
+
+// Internationalization code bindings
+document.getElementById('popup_title').innerText = _lang('popup_title');
+document.getElementById('popup_to_start').innerText = _lang('popup_to_start');
+document.getElementById('button_make_room').innerText = _lang('button_make_room');
+document.getElementById('insert_room_code_here').innerText = _lang('insert_room_code_here');
+document.getElementById('button_join_room').innerText = _lang('button_join_room');

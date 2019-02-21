@@ -6,17 +6,18 @@
 </head>
 
 <body>
-  <h1>Welcome in VideoGaze!</h1>
+  <h1 id="popup_title"></h1>
 
   <div id="room_details"></div>
 
   <div>
-  To start, select an option:  
-  <button id="button_make_room">Make a room in this page</button><br/>
-  Or insert room code here: <input type="text" id="text_roomcode" size="35"/><button id="button_join_room">Join!</button>
+  <span id="popup_to_start"></span>, 
+  <button id="button_make_room"></button><br/>
+  <span id="insert_room_code_here"></span>: <input type="text" id="text_roomcode" size="30"/><button id="button_join_room"></button>
   </div>
 
   <script type="text/javascript" src="../js/chrome/base.js"></script>
+  <script type="text/javascript" src="../js/chrome/internationalization.js"></script>
   <script type="text/javascript" src="./popup.js"></script>
 </body>
 

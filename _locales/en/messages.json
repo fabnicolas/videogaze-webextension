@@ -1,0 +1,22 @@
+{
+  "popup_title": {
+    "message": "Welcome to VideoGaze!",
+    "description": "VideoGaze welcome title."
+  },
+  "popup_to_start": {
+    "message": "To make a room",
+    "description": "Message to tell the user that he could make a room."
+  },
+  "button_make_room": {
+    "message": "click here!",
+    "description": "Message used on the button to make a room."
+  },
+  "insert_room_code_here": {
+    "message": "Or insert code here",
+    "description": "Message used on the label to insert an existing room code."
+  },
+  "button_join_room": {
+    "message": "Join",
+    "description": "Message used on the button to join an existing room."
+  }
+}
