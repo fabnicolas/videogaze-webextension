@@ -1,13 +1,7 @@
 {
-  "applications": {
-    "gecko": {
-      "id": "VideoGaze@fabnicolas.net",
-      "strict_min_version": "42.0"
-    }
-  },
   "name": "VideoGaze extension",
   "description": "VideoGaze description extension.",
-  "version": "0.0.0.4",
+  "version": "0.0.0.6",
   "permissions": [
     "activeTab",
     "tabs",
@@ -23,6 +17,7 @@
     "scripts": [
       "js/chrome/base.js",
       "js/chrome/extra.js",
+      "js/chrome/communicator.js",
       "background/background.js"
     ]
   },

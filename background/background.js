@@ -37,6 +37,7 @@
         tab_id,
         [
           {file: '/js/chrome/storage.js', allFrames: true},
+          {file: '/js/chrome/communicator.js', allFrames: true},
           {file: '/cs/video_detector.js', allFrames: true}
         ],
         function() {inject_videogaze_func_next1(tab_id);}
@@ -51,7 +52,6 @@
         for(var i = 0;i < frames.length;i++) {
           video_tabs[tab_id].frameIds.push(frames[i].frameId);
         }
-        console.log(video_tabs);
       });
 
       if(video_tabs[tab_id] === undefined) video_tabs[tab_id] = {};
@@ -134,39 +134,39 @@
 
   /* [PORT HANDLERS] */
 
-  var handler_popup_port = function(message) {
+  var handler_popup_port = function(packet) {
     // If popup script requests INIT, tell popup script that init is completed
-    if(message.init) port_popup.postMessage({is_init_completed: true});
+    if(packet.message.init){
+      port_popup.postMessage({background_ready: true});
+    }
 
     // Tell CS to perform room initialization
-    if(message.action == "room") {
+    if(packet.message.action == "room") {
       chrome_get_active_tab(actual_tab => {
-        var action = function() {port_cs[actual_tab.id].postMessage(message);}
+        var action = function() {port_cs[actual_tab.id].postMessage(packet.message);}
         if(port_cs[actual_tab.id] == null) inject_videogaze_once(action);
         else action();
       });
     }
 
-    if(message.action == "getdata")
+    if(packet.message.action == "getdata")
       port_popup.postMessage({video_tabs: video_tabs});
   };
 
-  var handler_cs_port = function(message) {
+  var handler_cs_port = function(packet) {
     // If message has INIT, Forward INIT message from CS script to POPUP
-    if(message.init && is_popup_port_open()) port_popup.postMessage({is_init_completed: true});
+    if(packet.message.init && is_popup_port_open()) port_popup.postMessage({background_ready: true});
 
     // If message has CODE, store roomcode and tell popup script to show the roomcode
-    if(message.code) {
+    if(packet.message.code) {
       chrome_get_active_tab(actual_tab => {
-        video_tabs[actual_tab.id].roomcode = message.code;
+        video_tabs[actual_tab.id].roomcode = packet.message.code;
         port_popup.postMessage({video_tabs: video_tabs});
       });
     }
   };
 
   var handler_detector_port = function(packet) {
-    console.log(packet);
-
     if(packet.message.new_iframe_found) {
       chrome.webNavigation.getAllFrames({tabId: packet.tab_id}, function(frames) {
         frames_vector = [];
@@ -181,9 +181,10 @@
           packet.tab_id,
           [
             {file: '/js/chrome/storage.js', frameId: new_frame_id},
+            {file: '/js/chrome/communicator.js', frameId: new_frame_id},
             {file: '/cs/video_detector.js', frameId: new_frame_id}
           ],
-          function() {inject_videogaze_func_next1(tab_id);}
+          function() {}
         );
       });
 

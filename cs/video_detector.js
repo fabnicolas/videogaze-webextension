@@ -1,25 +1,12 @@
 (function() {
   console.log("VideoGaze Detector (video_detector.js) injected into webpage!");
-
-  var port_detector = null;
-  var port_data = {};
-  var open_port = function(callback) {
-    if(port_detector == null) {
-      port_detector = chrome.runtime.connect({name: 'port-detector'});
-      port_detector.onMessage.addListener(function(message) {
-        if(message.background_ready){
-          port_data = {tab_id: message.tab_id, frame_id: message.frame_id};
-          callback();
-        }
-      });
-      port_message({init: true});
-    } else {
-      callback();
-    }
+  
+  var open_port = function(callback){
+    Communicator.on_port_open('port-detector', callback);
   }
 
   var port_message = function(message){
-    port_detector.postMessage({...port_data, ...{message: message}})
+    Communicator.message('port-detector', message);
   }
 
   if(window.self === window.top) {
@@ -28,22 +15,16 @@
       mutations.forEach(function(mutation) {
         if(mutation.addedNodes && mutation.addedNodes[0] && mutation.addedNodes[0].tagName=="IFRAME"){
           console.log(mutation.addedNodes[0]);
-          mutation.addedNodes[0].addEventListener('load', function(){
-            open_port(function(){
-              console.log("Sending message new_iframe_found: true");
-              port_message({new_iframe_found: true});
-            })
-          });
+          mutation.addedNodes[0].addEventListener('load', report_iframe);
         }
       });
     });
 
-    /*var report_iframe = function(){
+    var report_iframe = function(){
       open_port(function(){
-        console.log("Sending message new_iframe_found: true")
-        port_detector.sendMessage({new_iframe_found: true});
+        port_message({new_iframe_found: true});
       })
-    }*/
+    }
 
     mutationObserver.observe(document.body, {
       attributes: false,

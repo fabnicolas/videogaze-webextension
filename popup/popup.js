@@ -1,34 +1,21 @@
 var _video_tabs = [];
-var popup_port = null;
 
-var on_port_open = function(callback) {
-  if(popup_port == null) {
-    popup_port = chrome.runtime.connect({name: 'port-popup'});
-    popup_port.onMessage.addListener(function(message) {
-      if(message.is_init_completed) callback();
-      if(message.video_tabs) {
-        _video_tabs = message.video_tabs;
-        chrome_get_active_tab(actual_tab => {
-          if(_video_tabs[actual_tab.id]) {
-            document.getElementById('room_details').innerText = 'Room code = ' +
-              _video_tabs[actual_tab.id].roomcode;
-          }
-        });
+Communicator.listen_to('port-popup', function(message){
+  if(message.video_tabs) {
+    _video_tabs = message.video_tabs;
+    chrome_get_active_tab(actual_tab => {
+      if(_video_tabs[actual_tab.id]) {
+        document.getElementById('room_details').innerText = 'Room code = ' +
+          _video_tabs[actual_tab.id].roomcode;
       }
     });
-    popup_port.postMessage({init: true});
-  } else {
-    callback();
   }
-}
+});
 
-
-var port_message = function(message_to_send) {
-  if(message_to_send === undefined) message_to_send = null;
-  on_port_open(function() {
-    if(popup_port != null) popup_port.postMessage(message_to_send);
-    else console.log("Error: port is null in popup.js");
-  });
+var port_message = function(message){
+  Communicator.on_port_open('port-popup', function(){
+    Communicator.message('port-popup', message);
+  }); 
 }
 
 var onclick_make_room = function() {
