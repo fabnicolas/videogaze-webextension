@@ -4,8 +4,8 @@ Communicator.listen_to('port-popup', function(message) {
   if(message.video_tabs) {
     _video_tabs = message.video_tabs;
     if(_video_tabs[message.tab_id]) {
-      document.getElementById('room_details').style.display = "block";
-      document.getElementById('roomcode').value = _video_tabs[message.tab_id].roomcode;
+      document.getElementById('div_room_details').style.display = "block";
+      document.getElementById('actual_roomcode').value = _video_tabs[message.tab_id].roomcode;
     }
   }
 
@@ -25,12 +25,31 @@ var onclick_make_room = function() {
 }
 
 var onclick_join_room = function() {
-  port_message({action: 'room', roomcode: document.getElementById('text_roomcode').value});
+  port_message({action: 'room', roomcode: document.getElementById('input_join_roomcode').value});
 }
 
 var onclick_overlay_close = function() {
   port_message({action: 'overlay', data: 'overlay_close'});
 }
+
+var onclick_copy_to_clipboard = function(){
+  document.getElementById('actual_roomcode').select();
+  document.execCommand("copy");
+}
+
+var onclick_input_join_roomcode = (function(){
+  var element = document.getElementById('input_join_roomcode');
+  var previous_text = element.value;
+  element.select();
+  element.focus();
+  document.execCommand("paste");
+  var new_text = element.value;
+  if(new_text.length >= 22 && new_text.length <= 24){
+    onclick_join_room();
+  }else{
+    element.value = previous_text;
+  }
+});
 
 
 function bind_controls() {
@@ -43,6 +62,9 @@ function bind_controls() {
   document.getElementById('button_make_room').innerText = _lang('button_make_room');
   document.getElementById('text_roomcode').innerText = _lang('text_roomcode');
   document.getElementById('button_join_room').innerText = _lang('button_join_room');
+
+  document.getElementById('actual_roomcode').addEventListener('click', onclick_copy_to_clipboard);
+  document.getElementById('input_join_roomcode').addEventListener('click', onclick_input_join_roomcode);
 }
 
 

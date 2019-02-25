@@ -38,6 +38,7 @@
 	z-index: 16777271;
 	background-color: rgba(0,0,0,0.7);
 	color: orange;
+	padding: 2px;
 }
 
 #videogaze_overlay #overlay_controls{
