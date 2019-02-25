@@ -70,7 +70,7 @@
 	color: red;
 }
 
-#videogaze_overlay #text_roomcode{
+#videogaze_overlay #text_roomcode,#roomcode{
 	border: 1px solid orange;
 	color: yellow;
 }

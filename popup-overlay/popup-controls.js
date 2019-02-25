@@ -4,8 +4,10 @@ Communicator.listen_to('port-popup', function(message) {
   if(message.video_tabs) {
     _video_tabs = message.video_tabs;
     if(_video_tabs[message.tab_id]) {
-      document.getElementById('room_details').innerText = 'Room code = ' +
-        _video_tabs[message.tab_id].roomcode;
+      document.getElementById('room_details').innerHTML =
+        'Room code = <input readonly id="roomcode" size="23" value="' +
+        _video_tabs[message.tab_id].roomcode +
+        '"/>';
     }
   }
 });
@@ -42,6 +44,15 @@ function bind_controls() {
 }
 
 
+var on_page_load = function(){
+  port_message({action: 'getdata'});
+}
+
+if(document.readyState == "ready" || document.readyState == "complete") {
+  on_page_load();
+} else {
+  window.onload = on_page_load;
+}
 
 
 

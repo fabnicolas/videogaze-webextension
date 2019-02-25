@@ -1,7 +1,7 @@
 (function() {
   console.log("background.js injected automatically.");
 
-  var port_popup = null, port_cs = {}, port_detector = {};
+  var port_popup = {}, port_cs = {}, port_detector = {};
   var tabs = {}
   var video_tabs = {};
   var overlay_tabs = {};
@@ -133,49 +133,40 @@
 
   // Utility function to check if port_popup is open
   var is_popup_port_open = function() {
-    return port_popup != null && (chrome.extension.getViews({type: "popup"}).length > 0);
+    return is_empty(port_popup) && (chrome.extension.getViews({type: "popup"}).length > 0);
   }
 
   /* [PORT HANDLERS] */
 
   var handler_popup_port = function(packet) {
-    // If popup script requests INIT, tell popup script that init is completed
-    if(packet.message.init) {
-      port_popup.postMessage({background_ready: true});
-    }
-
     // Tell CS to perform room initialization
     if(packet.message.action == "room") {
-      chrome_get_active_tab(actual_tab => {
-        var action = function() {
-          console.log("called");
-          port_cs[actual_tab.id].postMessage(packet.message);
-        }
-        if(port_cs[actual_tab.id] == null) inject_videogaze_once(action);
-        else action();
-      });
+      var action = function() {
+        port_cs[packet.tab_id].postMessage(packet.message);
+      }
+      if(port_cs[packet.tab_id] == null) inject_videogaze_once(action);
+      else action();
     }
 
     if(packet.message.action == "getdata")
-      port_popup.postMessage({video_tabs: video_tabs});
+      port_popup[packet.tab_id].postMessage({video_tabs: video_tabs, tab_id: packet.tab_id});
 
     if(packet.message.action == "overlay")
       if(packet.message.data == "overlay_close")
-        chrome_get_active_tab(actual_tab => {
-          delete overlay_tabs[actual_tab.id];
-        });
+        delete overlay_tabs[packet.tab_id];
   };
 
   var handler_cs_port = function(packet) {
     // If message has INIT, Forward INIT message from CS script to POPUP
-    if(packet.message.init && is_popup_port_open()) port_popup.postMessage({background_ready: true});
-
+    if(packet.message.init && is_popup_port_open()) {
+      port_popup[packet.tab_id].postMessage({background_ready: true});
+    }
     // If message has CODE, store roomcode and tell popup script to show the roomcode
     if(packet.message.code) {
       chrome_get_active_tab(actual_tab => {
         video_tabs[actual_tab.id].roomcode = packet.message.code;
         console.log(video_tabs);
-        port_popup.postMessage({video_tabs: video_tabs, tab_id: actual_tab.id});
+        port_popup[actual_tab.id].postMessage({video_tabs: video_tabs, tab_id: actual_tab.id});
       });
     }
   };
@@ -219,9 +210,15 @@
   // Initialize ports. Handle popup, content and detector scripts messages.
   chrome.runtime.onConnect.addListener(function(connecting_port) {
     if(connecting_port.name == "port-popup") {
-      // There is only one popup
-      port_popup = connecting_port;
-      port_popup.onMessage.addListener(handler_popup_port);
+      // There can be multiple popups since we are using content script overlays at the end
+      var target_tab = connecting_port.sender.tab.id;
+      port_popup[target_tab] = connecting_port;
+      port_popup[target_tab].onMessage.addListener(handler_popup_port);
+      port_popup[target_tab].postMessage({
+        background_ready: true,
+        tab_id: target_tab,
+        frame_id: 0
+      });
     } else if(connecting_port.name == "port-cs") {
       // There can be multiple tabs with VideoGaze content scripts injected
       var target_tab = connecting_port.sender.tab.id;
