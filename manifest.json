@@ -10,8 +10,7 @@
     "<all_urls>"
   ],
   "browser_action": {
-    "default_popup": "popup/popup.html",
-    "default_title": "Click to inject VideoGaze JS scripts."
+    "default_title": "VideoGaze - Click here."
   },
   "background": {
     "scripts": [
@@ -21,6 +20,9 @@
       "background/background.js"
     ]
   },
+  "web_accessible_resources": [
+    "popup-overlay/style.css"
+  ],
   "options_page": "options/options.html",
   "options_ui": {"page": "options/options.html"},
   "default_locale": "en",

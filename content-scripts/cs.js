@@ -3,17 +3,6 @@
 
 	var videoplayer = document.getElementsByTagName('video')[0];
 	
-	Communicator.listen_to('port-popup', function(message){
-		if(message.video_tabs) {
-			_video_tabs = message.video_tabs;
-			chrome_get_active_tab(actual_tab => {
-				if(_video_tabs[actual_tab.id]) {
-					document.getElementById('room_details').innerText = 'Room code = ' +
-						_video_tabs[actual_tab.id].roomcode;
-				}
-			});
-		}
-	});
 	/* port-cs connects with background script, which is indirectly connected to popup script */
 	var port_cs = chrome.runtime.connect({name: "port-cs"});
 	port_cs.onMessage.addListener(function(message) {

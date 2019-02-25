@@ -51,7 +51,7 @@
     detect_video(function(videoplayer) {
       var videoplayer_detected = function(_videoplayer) {
         open_port(function() {
-          port_message({video_detected: true, videoplayer: _videoplayer});
+          port_message({video_detected: true});
         });
       }
 
@@ -67,11 +67,13 @@
   }
 
   var clearAllIntervals = function(callback) {
+    callback();
+/*
     if(callback === undefined) callback = null;
     chrome_storage_get_attribute("clear_all_intervals", can_clear => {
       if(can_clear) for(var i = 1;i < 999999;i++) window.clearInterval(i);
       if(callback != null) callback();
-    })
+    })*/
   }
 
 

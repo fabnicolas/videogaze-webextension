@@ -1,0 +1,80 @@
+.reset-element,.reset-element *,.reset-element a:hover,.reset-element a:visited,.reset-element a:active{
+	background:none;
+	border:none;
+	bottom:auto;
+	clear:none;
+	cursor:default;
+	float:none;
+	font-family:Arial, Helvetica, sans-serif;
+	font-size:medium;
+	font-style:normal;
+	font-weight:normal;
+	height:auto;
+	left:auto;
+	letter-spacing:normal;
+	line-height:normal;
+	max-height:none;
+	max-width:none;
+	min-height:0;
+	min-width:0;
+	overflow:visible;
+	position:static;
+	right:auto;
+	text-align:left;
+	text-decoration:none;
+	text-indent:0;
+	text-transform:none;
+	top:auto;
+	visibility:visible;
+	white-space:normal;
+	width:auto;
+	z-index:auto;
+}
+
+#videogaze_overlay{
+	position: fixed;
+	top: 0;
+	right: 0;
+	z-index: 16777271;
+	background-color: rgba(0,0,0,0.7);
+	color: orange;
+}
+
+#videogaze_overlay #overlay_controls{
+	text-align: right;
+}
+
+#videogaze_overlay #overlay_controls_close{
+	font-size: 2em;
+}
+
+#videogaze_overlay #popup_title{
+	font-size: 16px;
+	font-weight: bold;
+}
+
+#videogaze_overlay #room_details{
+	background-color: black;
+	color: aqua;
+}
+
+#videogaze_overlay #popup_to_start{
+	display: inline-block;
+}
+
+#videogaze_overlay #insert_room_code_here{
+	display: inline-block;
+}
+
+#videogaze_overlay #button_make_room{
+	color: red;
+}
+
+#videogaze_overlay #text_roomcode{
+	border: 1px solid orange;
+	color: yellow;
+}
+
+#videogaze_overlay #button_join_room{
+	color: red;
+}

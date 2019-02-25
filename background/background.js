@@ -4,6 +4,7 @@
   var port_popup = null, port_cs = {}, port_detector = {};
   var tabs = {}
   var video_tabs = {};
+  var overlay_tabs = {};
 
   /**
    * Inject VideoGaze in current tab only once.
@@ -19,10 +20,10 @@
   /**
    * Inject VideoGaze in any tab you like.
    * 
-   * Notice that this function injects /cs/video_detector inside all frames.
+   * Notice that this function injects /content-scripts/video_detector inside all frames.
    * That script is needed to check in which frame the other scripts should be injected.
    * 
-   * If a video has been found, /cs/video_detector will communicate it to /background so that
+   * If a video has been found, /content-scripts/video_detector will communicate it to /background so that
    * /background can perform injection in that specific frame.
    * 
    * @param {function} callback 
@@ -38,7 +39,7 @@
         [
           {file: '/js/chrome/storage.js', allFrames: true},
           {file: '/js/chrome/communicator.js', allFrames: true},
-          {file: '/cs/video_detector.js', allFrames: true}
+          {file: '/content-scripts/video_detector.js', allFrames: true}
         ],
         function() {inject_videogaze_func_next1(tab_id);}
       );
@@ -55,7 +56,10 @@
       });
 
       if(video_tabs[tab_id] === undefined) video_tabs[tab_id] = {};
-      video_tabs[tab_id].on_frame_id_with_video_ready = callback;
+      video_tabs[tab_id].on_frame_id_with_video_ready = function() {
+        callback();
+        delete video_tabs[tab_id].on_frame_id_with_video_ready;
+      }
     }
 
     // If tab_id argument is not provided, detect the actual tab ID, else use tab_id value
@@ -71,7 +75,7 @@
   /**
    * Inject VideoGaze in any tab and frame you like.
    * 
-   * This function is automatically called when /cs/video_detector has communicated to /background
+   * This function is automatically called when /content-scripts/video_detector has communicated to /background
    * that a video has been found in a specific frame id.
    * 
    * VideoGaze at that moment is ready to be injected then in that specific frame by using this function.
@@ -88,7 +92,7 @@
         {file: '/js/utils.js', frameId: frame_id},
         {file: '/global.js', frameId: frame_id},
         {file: '/room.js', frameId: frame_id},
-        {file: '/cs/cs.js', frameId: frame_id},
+        {file: '/content-scripts/cs.js', frameId: frame_id},
       ],
       callback
     );
@@ -136,14 +140,17 @@
 
   var handler_popup_port = function(packet) {
     // If popup script requests INIT, tell popup script that init is completed
-    if(packet.message.init){
+    if(packet.message.init) {
       port_popup.postMessage({background_ready: true});
     }
 
     // Tell CS to perform room initialization
     if(packet.message.action == "room") {
       chrome_get_active_tab(actual_tab => {
-        var action = function() {port_cs[actual_tab.id].postMessage(packet.message);}
+        var action = function() {
+          console.log("called");
+          port_cs[actual_tab.id].postMessage(packet.message);
+        }
         if(port_cs[actual_tab.id] == null) inject_videogaze_once(action);
         else action();
       });
@@ -151,6 +158,12 @@
 
     if(packet.message.action == "getdata")
       port_popup.postMessage({video_tabs: video_tabs});
+
+    if(packet.message.action == "overlay")
+      if(packet.message.data == "overlay_close")
+        chrome_get_active_tab(actual_tab => {
+          delete overlay_tabs[actual_tab.id];
+        });
   };
 
   var handler_cs_port = function(packet) {
@@ -161,7 +174,8 @@
     if(packet.message.code) {
       chrome_get_active_tab(actual_tab => {
         video_tabs[actual_tab.id].roomcode = packet.message.code;
-        port_popup.postMessage({video_tabs: video_tabs});
+        console.log(video_tabs);
+        port_popup.postMessage({video_tabs: video_tabs, tab_id: actual_tab.id});
       });
     }
   };
@@ -182,9 +196,8 @@
           [
             {file: '/js/chrome/storage.js', frameId: new_frame_id},
             {file: '/js/chrome/communicator.js', frameId: new_frame_id},
-            {file: '/cs/video_detector.js', frameId: new_frame_id}
-          ],
-          function() {}
+            {file: '/content-scripts/video_detector.js', frameId: new_frame_id}
+          ]
         );
       });
 
@@ -228,5 +241,33 @@
         frame_id: target_frame
       });
     }
+  });
+
+  chrome.browserAction.onClicked.addListener(function(tab) {
+    var inject_popup_ui = function() {
+      chrome_get_active_tab(actual_tab => {
+        if(overlay_tabs[actual_tab.id] === undefined) {
+          inject_popup_ui_next1(actual_tab.id, function() {
+            overlay_tabs[actual_tab.id] = true;
+          });
+        }
+      });
+    }
+
+    var inject_popup_ui_next1 = function(tab_id, callback) {
+      chrome_tabs_executeScripts(
+        tab_id,
+        [
+          {file: '/js/chrome/base.js'},
+          {file: '/js/chrome/internationalization.js'},
+          {file: '/js/chrome/communicator.js'},
+          {file: '/popup-overlay/popup-controls.js'},
+          {file: '/popup-overlay/popup-overlay.js'}
+        ],
+        callback
+      );
+    }
+
+    inject_popup_ui();
   });
 })();
