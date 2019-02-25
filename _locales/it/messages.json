@@ -3,7 +3,7 @@
     "message": "Benvenuto in VideoGaze!",
     "description": "Messaggio di benvenuto in VideoGaze."
   },
-  "popup_to_start": {
+  "text_start": {
     "message": "Per creare una stanza",
     "description": "Messaggio che invoglia l'utente a creare una stanza."
   },
@@ -11,7 +11,7 @@
     "message": "clicca qui!",
     "description": "Messaggio utilizzato sul bottone di creazione della stanza."
   },
-  "insert_room_code_here": {
+  "text_roomcode": {
     "message": "Oppure inserisci il codice",
     "description": "Messaggio utilizzato per inserire il codice di una stanza esistente."
   },

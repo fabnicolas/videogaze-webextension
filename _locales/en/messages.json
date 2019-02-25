@@ -3,7 +3,7 @@
     "message": "Welcome to VideoGaze!",
     "description": "VideoGaze welcome title."
   },
-  "popup_to_start": {
+  "text_start": {
     "message": "To make a room",
     "description": "Message to tell the user that he could make a room."
   },
@@ -11,7 +11,7 @@
     "message": "click here!",
     "description": "Message used on the button to make a room."
   },
-  "insert_room_code_here": {
+  "text_roomcode": {
     "message": "Or insert code here",
     "description": "Message used on the label to insert an existing room code."
   },

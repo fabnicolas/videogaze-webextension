@@ -138,7 +138,7 @@
 
   /* [PORT HANDLERS] */
 
-  var handler_popup_port = function(packet) {
+  var handler_port_popup = function(packet) {
     // Tell CS to perform room initialization
     if(packet.message.action == "room") {
       var action = function() {
@@ -148,7 +148,7 @@
       else action();
     }
 
-    if(packet.message.action == "getdata")
+    if(packet.message.action == "get_data")
       port_popup[packet.tab_id].postMessage({video_tabs: video_tabs, tab_id: packet.tab_id});
 
     if(packet.message.action == "overlay")
@@ -156,7 +156,7 @@
         overlay_tabs[packet.tab_id] = 'closed';
   };
 
-  var handler_cs_port = function(packet) {
+  var handler_port_cs = function(packet) {
     // If message has INIT, Forward INIT message from CS script to POPUP
     if(packet.message.init && is_popup_port_open()) {
       port_popup[packet.tab_id].postMessage({background_ready: true});
@@ -171,7 +171,7 @@
     }
   };
 
-  var handler_detector_port = function(packet) {
+  var handler_port_detector = function(packet) {
     if(packet.message.new_iframe_found) {
       chrome.webNavigation.getAllFrames({tabId: packet.tab_id}, function(frames) {
         frames_vector = [];
@@ -213,7 +213,7 @@
       // There can be multiple popups since we are using content script overlays at the end
       var target_tab = connecting_port.sender.tab.id;
       port_popup[target_tab] = connecting_port;
-      port_popup[target_tab].onMessage.addListener(handler_popup_port);
+      port_popup[target_tab].onMessage.addListener(handler_port_popup);
       port_popup[target_tab].postMessage({
         background_ready: true,
         tab_id: target_tab,
@@ -223,7 +223,7 @@
       // There can be multiple tabs with VideoGaze content scripts injected
       var target_tab = connecting_port.sender.tab.id;
       port_cs[target_tab] = connecting_port;
-      port_cs[target_tab].onMessage.addListener(handler_cs_port);
+      port_cs[target_tab].onMessage.addListener(handler_port_cs);
     } else if(connecting_port.name == "port-detector") {
       // There can be multiple tabs with multiple frame IDs with VideoGaze detector injected
       var target_tab = connecting_port.sender.tab.id;
@@ -231,7 +231,7 @@
       if(port_detector[target_tab] === undefined)
         port_detector[target_tab] = {};
       port_detector[target_tab][target_frame] = connecting_port;
-      port_detector[target_tab][target_frame].onMessage.addListener(handler_detector_port);
+      port_detector[target_tab][target_frame].onMessage.addListener(handler_port_detector);
       port_detector[target_tab][target_frame].postMessage({
         background_ready: true,
         tab_id: target_tab,

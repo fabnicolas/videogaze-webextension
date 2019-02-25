@@ -53,17 +53,17 @@
 	font-weight: bold;
 }
 
-#videogaze_overlay #room_details{
+#videogaze_overlay #div_room_details{
 	background-color: black;
 	color: aqua;
 	display: none;
 }
 
-#videogaze_overlay #popup_to_start{
+#videogaze_overlay #text_start{
 	display: inline-block;
 }
 
-#videogaze_overlay #insert_room_code_here{
+#videogaze_overlay #text_roomcode{
 	display: inline-block;
 }
 
@@ -71,7 +71,7 @@
 	color: red;
 }
 
-#videogaze_overlay #text_roomcode,#roomcode{
+#videogaze_overlay #input_join_roomcode,#actual_roomcode{
 	border: 1px solid orange;
 	color: yellow;
 }

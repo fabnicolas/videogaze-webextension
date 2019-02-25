@@ -39,15 +39,15 @@ function bind_controls() {
 
   // Internationalization code bindings
   document.getElementById('popup_title').innerText = _lang('popup_title');
-  document.getElementById('popup_to_start').innerText = _lang('popup_to_start');
+  document.getElementById('text_start').innerText = _lang('text_start');
   document.getElementById('button_make_room').innerText = _lang('button_make_room');
-  document.getElementById('insert_room_code_here').innerText = _lang('insert_room_code_here');
+  document.getElementById('text_roomcode').innerText = _lang('text_roomcode');
   document.getElementById('button_join_room').innerText = _lang('button_join_room');
 }
 
 
 var on_page_load = function() {
-  port_message({action: 'getdata'});
+  port_message({action: 'get_data'});
 }
 
 if(document.readyState == "ready" || document.readyState == "complete") {
