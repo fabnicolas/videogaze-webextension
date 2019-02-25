@@ -21,7 +21,8 @@
     ]
   },
   "web_accessible_resources": [
-    "popup-overlay/style.css"
+    "popup-overlay/style.css",
+    "popup-overlay/popup.html"
   ],
   "options_page": "options/options.html",
   "options_ui": {"page": "options/options.html"},
