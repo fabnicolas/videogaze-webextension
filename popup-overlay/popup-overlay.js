@@ -1,4 +1,4 @@
-(function() {
+var videogaze_overlay_hook = (function() {
   // Custom popup UI
   var element = document.createElement("link");
   element.setAttribute("rel", "stylesheet");
@@ -21,4 +21,6 @@
     to_remove.parentNode.removeChild(to_remove);
     onclick_overlay_close();
   });
-})();
+});
+
+videogaze_overlay_hook();

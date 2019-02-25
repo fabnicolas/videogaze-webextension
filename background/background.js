@@ -153,7 +153,7 @@
 
     if(packet.message.action == "overlay")
       if(packet.message.data == "overlay_close")
-        delete overlay_tabs[packet.tab_id];
+        overlay_tabs[packet.tab_id] = 'closed';
   };
 
   var handler_cs_port = function(packet) {
@@ -243,10 +243,14 @@
   chrome.browserAction.onClicked.addListener(function(tab) {
     var inject_popup_ui = function() {
       chrome_get_active_tab(actual_tab => {
+        debugger;
         if(overlay_tabs[actual_tab.id] === undefined) {
           inject_popup_ui_next1(actual_tab.id, function() {
-            overlay_tabs[actual_tab.id] = true;
+            overlay_tabs[actual_tab.id] = 'opened';
           });
+        } else if(overlay_tabs[actual_tab.id] == 'closed') {
+          port_popup[actual_tab.id].postMessage({overlay_open: true});
+          overlay_tabs[actual_tab.id] = 'opened';
         }
       });
     }
