@@ -243,7 +243,6 @@
   chrome.browserAction.onClicked.addListener(function(tab) {
     var inject_popup_ui = function() {
       chrome_get_active_tab(actual_tab => {
-        debugger;
         if(overlay_tabs[actual_tab.id] === undefined) {
           inject_popup_ui_next1(actual_tab.id, function() {
             overlay_tabs[actual_tab.id] = 'opened';

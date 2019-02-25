@@ -4,3 +4,4 @@ crxmake.sh
 legacy/
 *.zip
 *.xpi
+test-ext.bat
