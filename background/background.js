@@ -123,7 +123,7 @@
     if(change_info.status == "loading") {
       reload[tab_id] = true;
       if(change_info.url) {
-        if(video_tabs[tab_id]) new_url_detected[tab_id] = true;
+        new_url_detected[tab_id] = change_info.url;
         tabs[tab_id] = change_info.url;
       }
     }
@@ -132,55 +132,48 @@
     if(change_info.status == "complete" && change_info.url === undefined) {
       if(reload[tab_id]) {
         var previous_roomcode;
+        console.log(video_tabs);
         if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
         else previous_roomcode = null;
-        
+
+        delete reload[tab_id];
         delete video_tabs[tab_id];
         delete port_cs[tab_id];
         delete port_popup[tab_id];
         delete overlay_tabs[tab_id];
       }
 
-      // If URL has changed, keep track of it
-      var target_url;
-      if(new_url_detected[tab_id]) {
-        new_url_detected[tab_id] = false;
-        target_url = tabs[tab_id];
-      } else {
-        target_url = null;
+      var message_popup = null;
+
+      if(previous_roomcode != null){
+        message_popup = {action: 'change_room', roomcode: previous_roomcode};
+      }else if(new_url_detected[tab_id]){
+        var hash_roomcode = HashRouting(new_url_detected[tab_id]).get_parameter("roomcode");
+        if(hash_roomcode){
+          message_popup = {action: 'room', roomcode: hash_roomcode};
+        }
       }
 
-      console.log(target_url);
-      console.log(previous_roomcode);
+      // If the room is a video room or should be it, inject VideoGaze
+      if(message_popup != null){
+        inject_videogaze(function() {
+          handler_port_popup({
+            tab_id: tab_id,
+            message: message_popup
+          });
+        }, tab_id);
+      }
 
-      // If the room is a video room, inject VideoGaze
-      if(previous_roomcode != null)
-        (function(previous_roomcode) {
-          inject_videogaze(function() {
-            console.log({
-              tab_id: tab_id,
-              message: {
-                action: 'change_room',
-                roomcode: previous_roomcode,
-                url: target_url
-              }
-            });
-            handler_port_popup({
-              tab_id: tab_id,
-              message: {
-                action: 'change_room',
-                roomcode: previous_roomcode,
-                url: target_url
-              }
-            });
-          }, tab_id);
-        })(previous_roomcode);
+      // URL analyzed; discard it after processing
+      if(new_url_detected[tab_id]) {
+        new_url_detected[tab_id] = false;
+      }
     }
   });
 
   // Utility function to check if port_popup is open
-  var is_popup_port_open = function() {
-    return port_popup != null && (chrome.extension.getViews({type: "popup"}).length > 0);
+  var is_popup_port_open = function(tab_id) {
+    return port_popup[tab_id] != null && (chrome.extension.getViews({type: "popup"}).length > 0);
   }
 
   /* [PORT HANDLERS] */
@@ -205,7 +198,7 @@
 
   var handler_port_cs = function(packet) {
     // If message has INIT, Forward INIT message from CS script to POPUP
-    if(packet.message.init && is_popup_port_open()) {
+    if(packet.message.init && is_popup_port_open(packet.tab_id)) {
       port_popup[packet.tab_id].postMessage({background_ready: true});
     }
     // If message has CODE, store roomcode and tell popup script to show the roomcode

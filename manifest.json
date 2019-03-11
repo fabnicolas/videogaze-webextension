@@ -19,6 +19,7 @@
       "js/chrome/base.js",
       "js/chrome/extra.js",
       "js/chrome/communicator.js",
+      "js/lib/HashRouting.js",
       "background/background.js"
     ]
   },
