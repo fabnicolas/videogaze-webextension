@@ -13,6 +13,7 @@
 
 		if(message.action == "change_room"){
 			Room.on_url_change_listener(function(new_url) {
+				console.log(window.location.toString());
 				if(window.location.toString() !== new_url)
 					window.location = new_url;
 			});
@@ -29,7 +30,7 @@
 	});
 
 	var make_room_cs = function(roomcode){
-		make_room(roomcode, videoplayer, function(roomcode) {
+		Room_Maker.make_room(roomcode, videoplayer, function(roomcode) {
 			// When room is made, send code back to background script (which communicates it to the popup).
 			port_message({code: roomcode});
 		});

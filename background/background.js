@@ -98,7 +98,8 @@
         {file: '/js/chrome/base.js', frameId: frame_id},
         {file: '/js/utils.js', frameId: frame_id},
         {file: '/global.js', frameId: frame_id},
-        {file: '/room.js', frameId: frame_id},
+        {file: '/js/room.js', frameId: frame_id},
+        {file: '/js/room-middleware.js', frameId: frame_id},
         {file: '/content-scripts/cs.js', frameId: frame_id},
       ],
       callback
@@ -131,13 +132,13 @@
     if(change_info.status == "complete" && change_info.url === undefined) {
       if(reload[tab_id]) {
         var previous_roomcode;
+        if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
+        else previous_roomcode = null;
+        
         delete video_tabs[tab_id];
         delete port_cs[tab_id];
         delete port_popup[tab_id];
         delete overlay_tabs[tab_id];
-
-        if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
-        else previous_roomcode = null;
       }
 
       // If URL has changed, keep track of it
@@ -149,10 +150,21 @@
         target_url = null;
       }
 
+      console.log(target_url);
+      console.log(previous_roomcode);
+
       // If the room is a video room, inject VideoGaze
       if(previous_roomcode != null)
         (function(previous_roomcode) {
           inject_videogaze(function() {
+            console.log({
+              tab_id: tab_id,
+              message: {
+                action: 'change_room',
+                roomcode: previous_roomcode,
+                url: target_url
+              }
+            });
             handler_port_popup({
               tab_id: tab_id,
               message: {
