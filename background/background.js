@@ -112,27 +112,45 @@
     }
   });
 
-  var new_url_detected = {};
+  var new_url_detected = {}, reload = {};
 
   // Listen for tabs changes (URL changed, refresh, etc.)
   chrome.tabs.onUpdated.addListener(function(tab_id, change_info, tab) {
-    //console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
+    console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
 
-    // When an URL changes, reflect the change into tabs object
-    if(change_info.status == "loading" && change_info.url) {
-      if(video_tabs[tab_id]) new_url_detected[tab_id] = true;
-      tabs[tab_id] = change_info.url;
+    // When page reloads, set reload flag on that tab and determine if URL has changed
+    if(change_info.status == "loading") {
+      reload[tab_id] = true;
+      if(change_info.url) {
+        if(video_tabs[tab_id]) new_url_detected[tab_id] = true;
+        tabs[tab_id] = change_info.url;
+      }
     }
 
-
-    // When the page is reloaded: if the tab was a video tab, re-inject VideoGaze again
+    // When the page has finished loading, re-inject VideoGaze again in case of a video tab
     if(change_info.status == "complete" && change_info.url === undefined) {
-      if(new_url_detected[tab_id]) {
-        new_url_detected[tab_id] = false;
-        var previous_roomcode = video_tabs[tab_id].roomcode;
+      if(reload[tab_id]) {
+        var previous_roomcode;
         delete video_tabs[tab_id];
         delete port_cs[tab_id];
         delete port_popup[tab_id];
+        delete overlay_tabs[tab_id];
+
+        if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
+        else previous_roomcode = null;
+      }
+
+      // If URL has changed, keep track of it
+      var target_url;
+      if(new_url_detected[tab_id]) {
+        new_url_detected[tab_id] = false;
+        target_url = tabs[tab_id];
+      } else {
+        target_url = null;
+      }
+
+      // If the room is a video room, inject VideoGaze
+      if(previous_roomcode != null)
         (function(previous_roomcode) {
           inject_videogaze(function() {
             handler_port_popup({
@@ -140,27 +158,11 @@
               message: {
                 action: 'change_room',
                 roomcode: previous_roomcode,
-                url: tabs[tab_id]
+                url: target_url
               }
             });
           }, tab_id);
         })(previous_roomcode);
-      }
-
-
-      // VideoGaze tab reloading is actually not supported due to framing-architecture (19/02/2019).
-
-      /*
-      if(video_tabs[tab_id]) {
-        inject_videogaze(function() {
-          chrome_get_active_tab(actual_tab => {
-            port_cs[actual_tab.id].postMessage({
-              action: "room",
-              roomcode: video_tabs[tab_id].roomcode
-            });
-          });
-        }, tab_id);
-      }*/
     }
   });
 
