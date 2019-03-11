@@ -49,6 +49,7 @@
   var start_video_detection = function() {
     console.log("Starting video detection...");
     detect_video(function(videoplayer) {
+      console.log("Video detected!");
       var videoplayer_detected = function(_videoplayer) {
         open_port(function() {
           port_message({video_detected: true});

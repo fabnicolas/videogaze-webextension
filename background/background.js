@@ -6,15 +6,18 @@
   var video_tabs = {};
   var overlay_tabs = {};
 
+  var define_object = function(param_object) {
+    if(param_object === undefined) param_object = {};
+    return param_object;
+  }
+
   /**
    * Inject VideoGaze in current tab only once.
    * 
    * @param {function} callback 
    */
-  var inject_videogaze_once = function(callback) {
-    chrome_get_active_tab(actual_tab => {
-      if(!video_tabs[actual_tab.id]) inject_videogaze(callback);
-    });
+  var inject_videogaze_once = function(callback, tab_id) {
+    if(!video_tabs[tab_id]) inject_videogaze(callback, tab_id);
   }
 
   /**
@@ -30,6 +33,7 @@
    * @param {int} tab_id The tab ID where VideoGaze should be injected.
    */
   var inject_videogaze = function(callback, tab_id) {
+    if(callback === undefined) callback = null;
     if(tab_id === undefined) tab_id = null;
 
     // Inject VideoGaze Detector
@@ -48,18 +52,21 @@
     // When VideoGaze Detector is injected, show frames details & store video tab callback
     var inject_videogaze_func_next1 = function(tab_id) {
       chrome.webNavigation.getAllFrames({tabId: tab_id}, function(frames) {
-        if(video_tabs[tab_id] === undefined) video_tabs[tab_id] = {};
+        video_tabs[tab_id] = define_object(video_tabs[tab_id]);
         video_tabs[tab_id].frameIds = [];
         for(var i = 0;i < frames.length;i++) {
           video_tabs[tab_id].frameIds.push(frames[i].frameId);
         }
       });
 
-      if(video_tabs[tab_id] === undefined) video_tabs[tab_id] = {};
-      video_tabs[tab_id].on_frame_id_with_video_ready = function() {
-        callback();
-        delete video_tabs[tab_id].on_frame_id_with_video_ready;
-      }
+      video_tabs[tab_id] = define_object(video_tabs[tab_id]);
+
+      (function(callback) {
+        video_tabs[tab_id].on_frame_id_with_video_ready = function() {
+          if(callback != null) callback();
+          delete video_tabs[tab_id].on_frame_id_with_video_ready;
+        }
+      })(callback);
     }
 
     // If tab_id argument is not provided, detect the actual tab ID, else use tab_id value
@@ -105,16 +112,42 @@
     }
   });
 
+  var new_url_detected = {};
+
   // Listen for tabs changes (URL changed, refresh, etc.)
   chrome.tabs.onUpdated.addListener(function(tab_id, change_info, tab) {
     //console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
 
     // When an URL changes, reflect the change into tabs object
-    if(change_info.status == "loading" && change_info.url)
+    if(change_info.status == "loading" && change_info.url) {
+      if(video_tabs[tab_id]) new_url_detected[tab_id] = true;
       tabs[tab_id] = change_info.url;
+    }
+
 
     // When the page is reloaded: if the tab was a video tab, re-inject VideoGaze again
     if(change_info.status == "complete" && change_info.url === undefined) {
+      if(new_url_detected[tab_id]) {
+        new_url_detected[tab_id] = false;
+        var previous_roomcode = video_tabs[tab_id].roomcode;
+        delete video_tabs[tab_id];
+        delete port_cs[tab_id];
+        delete port_popup[tab_id];
+        (function(previous_roomcode) {
+          inject_videogaze(function() {
+            handler_port_popup({
+              tab_id: tab_id,
+              message: {
+                action: 'change_room',
+                roomcode: previous_roomcode,
+                url: tabs[tab_id]
+              }
+            });
+          }, tab_id);
+        })(previous_roomcode);
+      }
+
+
       // VideoGaze tab reloading is actually not supported due to framing-architecture (19/02/2019).
 
       /*
@@ -133,18 +166,18 @@
 
   // Utility function to check if port_popup is open
   var is_popup_port_open = function() {
-    return is_empty(port_popup) && (chrome.extension.getViews({type: "popup"}).length > 0);
+    return port_popup != null && (chrome.extension.getViews({type: "popup"}).length > 0);
   }
 
   /* [PORT HANDLERS] */
 
   var handler_port_popup = function(packet) {
     // Tell CS to perform room initialization
-    if(packet.message.action == "room") {
+    if(packet.message.action == "room" || packet.message.action == "change_room") {
       var action = function() {
         port_cs[packet.tab_id].postMessage(packet.message);
       }
-      if(port_cs[packet.tab_id] == null) inject_videogaze_once(action);
+      if(port_cs[packet.tab_id] == null) inject_videogaze_once(action, packet.tab_id);
       else action();
     }
 
@@ -163,11 +196,9 @@
     }
     // If message has CODE, store roomcode and tell popup script to show the roomcode
     if(packet.message.code) {
-      chrome_get_active_tab(actual_tab => {
-        video_tabs[actual_tab.id].roomcode = packet.message.code;
-        console.log(video_tabs);
-        port_popup[actual_tab.id].postMessage({video_tabs: video_tabs, tab_id: actual_tab.id});
-      });
+      video_tabs[packet.tab_id].roomcode = packet.message.code;
+      if(port_popup[packet.tab_id])
+        port_popup[packet.tab_id].postMessage({video_tabs: video_tabs, tab_id: packet.tab_id});
     }
   };
 
@@ -221,9 +252,15 @@
       });
     } else if(connecting_port.name == "port-cs") {
       // There can be multiple tabs with VideoGaze content scripts injected
+
       var target_tab = connecting_port.sender.tab.id;
       port_cs[target_tab] = connecting_port;
       port_cs[target_tab].onMessage.addListener(handler_port_cs);
+      port_cs[target_tab].postMessage({
+        background_ready: true,
+        tab_id: target_tab,
+        frame_id: 0
+      });
     } else if(connecting_port.name == "port-detector") {
       // There can be multiple tabs with multiple frame IDs with VideoGaze detector injected
       var target_tab = connecting_port.sender.tab.id;

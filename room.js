@@ -122,11 +122,11 @@ var RoomHTTPEvents = (function() {
 
     if(typeof (EventSource) !== 'undefined') {
       var _loaded_url = url +
-      "?mode=" + form_data.get('mode') + "&roomcode=" + form_data.get('roomcode');
+        "?mode=" + form_data.get('mode') + "&roomcode=" + form_data.get('roomcode');
 
       var source = new EventSource(_loaded_url);
       source.onerror = function(event) {
-        console.log('SSE error:' + _loaded_url + " | "+JSON.stringify(event));
+        console.log('SSE error:' + _loaded_url + " | " + JSON.stringify(event));
         source.close();
         if(repeat_checktype(repeat_data, 'onerror') || repeat_checktype(repeat_data, 'always')) {
           setTimeout(
@@ -333,8 +333,10 @@ var Room = (function() {
    * @param {string} stream_type - Stream type (local, youtube, ...).
    * @param {string} stream_key - Stream key (url...).
    */
-  var set_stream = function(stream_type, stream_key) {
-    http_room_request('set_stream', stream_type + ";key=" + stream_key);
+  var set_stream = function(stream_type, stream_key, callback) {
+    if(callback === undefined) callback = null;
+
+    http_room_request('set_stream', stream_type + ";key=" + stream_key, null, callback);
   }
 
   /**
@@ -348,7 +350,7 @@ var Room = (function() {
       'set_isplaying',
       (isplaying == true ? 1 : 0),
       {'request_videotime': round_time(videotime, 6)},
-      function(data){
+      function(data) {
         _local_last_ctime = DateTimeParser.get_timestamp(data.message.last_ctime);
       }
     );
@@ -459,6 +461,9 @@ var Room = (function() {
                   event_notrigger(['pause'], function() {_videoplayer.pause();});
                 }
               }
+
+              //if(server_sync.hasOwnProperty("stream_key"))
+                on_url_change(server_sync.stream_key);
             }
 
             first_time = false;
@@ -558,6 +563,10 @@ var Room = (function() {
     return _videoplayer;
   }
 
+  var on_url_change_listener = function(callback) {on_url_change = callback;}
+
+  var on_url_change = function(){}
+
   // Class visibility.
   return {
     init: init,
@@ -565,12 +574,19 @@ var Room = (function() {
     attach_html5_video_handler: attach_html5_video_handler,
     get_video_player: get_video_player,
     request_sync: request_sync,
+    set_stream: set_stream,
+    on_url_change_listener: on_url_change_listener
   }
 })();
 
 
 function make_room(roomcode, videoplayer, callback) {
   if(roomcode === undefined) roomcode = null;
+
+  Room.on_url_change_listener(function(new_url) {
+    if(window.location.toString() !== new_url)
+      window.location = new_url;
+  });
 
   Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': window.location.toString()}, function(response) {
     if(response.status == 1) {
