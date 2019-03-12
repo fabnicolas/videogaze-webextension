@@ -22,7 +22,7 @@
 	});
 
 	var finalize_room = function(roomcode){
-		//window.history.replaceState({}, document.title, Room_Maker.current_video_url()+"#roomcode="+roomcode);
+		window.history.replaceState({}, document.title, Room_Maker.current_video_url()+"#roomcode="+roomcode);
 		Room_Maker.install_content_room(videoplayer, function(){
 			port_message({code: roomcode});
 		});

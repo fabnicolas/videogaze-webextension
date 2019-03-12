@@ -14,7 +14,6 @@
     var mutationObserver = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if(mutation.addedNodes && mutation.addedNodes[0] && mutation.addedNodes[0].tagName=="IFRAME"){
-          console.log(mutation.addedNodes[0]);
           mutation.addedNodes[0].addEventListener('load', report_iframe);
         }
       });

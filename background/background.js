@@ -113,49 +113,65 @@
     }
   });
 
-  var new_url_detected = {}, reload = {};
+  var tab_reloading = {}, tab_newloading = {};
+
+  chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
+    //console.log("Push/ReplaceState: " + details.url + ", indexOf=" + details.url.indexOf('#roomcode='));
+    tab_id = details.tabId;
+    if(details.url.indexOf('#roomcode=') > 0) {
+      delete tab_newloading[tab_id];
+      delete tab_reloading[tab_id];
+    }
+  });
 
   // Listen for tabs changes (URL changed, refresh, etc.)
   chrome.tabs.onUpdated.addListener(function(tab_id, change_info, tab) {
-    console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
+    //console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
 
     // When page reloads, set reload flag on that tab and determine if URL has changed
     if(change_info.status == "loading") {
-      reload[tab_id] = true;
       if(change_info.url) {
-        new_url_detected[tab_id] = change_info.url;
-        tabs[tab_id] = change_info.url;
+        if(!(tabs[tab_id] && (change_info.url.indexOf(tabs[tab_id])>=0))){
+          tab_newloading[tab_id] = change_info.url;
+          tabs[tab_id] = change_info.url;
+        }
+      } else {
+        // URL has not changed, so page has reloaded
+        tab_reloading[tab_id] = true;
       }
     }
 
     // When the page has finished loading, re-inject VideoGaze again in case of a video tab
     if(change_info.status == "complete" && change_info.url === undefined) {
-      if(reload[tab_id]) {
-        var previous_roomcode;
-        console.log(video_tabs);
-        if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
-        else previous_roomcode = null;
-
-        delete reload[tab_id];
-        delete video_tabs[tab_id];
-        delete port_cs[tab_id];
-        delete port_popup[tab_id];
-        delete overlay_tabs[tab_id];
-      }
-
+      var previous_roomcode = null;
       var message_popup = null;
 
-      if(previous_roomcode != null){
-        message_popup = {action: 'change_room', roomcode: previous_roomcode};
-      }else if(new_url_detected[tab_id]){
-        var hash_roomcode = HashRouting(new_url_detected[tab_id]).get_parameter("roomcode");
-        if(hash_roomcode){
-          message_popup = {action: 'room', roomcode: hash_roomcode};
+      if(tab_newloading[tab_id]) {
+        if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
+        if(previous_roomcode != null) {
+          // Room was existing
+          message_popup = {action: 'change_room', roomcode: previous_roomcode};
+        } else {
+          // Room was NOT existing
+          var hash_roomcode = HashRouting(tab_newloading[tab_id]).get_parameter("roomcode");
+          if(hash_roomcode) {
+            if(!video_tabs[tab_id]) {
+              video_tabs[tab_id] = define_object(video_tabs[tab_id]);
+              video_tabs[tab_id].roomcode = hash_roomcode;
+              message_popup = {action: 'room', roomcode: hash_roomcode};
+            }
+          }
+        }
+      } else if(tab_reloading[tab_id]) {
+        if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
+        if(previous_roomcode != null) {
+          // Room was existing
+          message_popup = {action: 'room', roomcode: previous_roomcode};
         }
       }
 
       // If the room is a video room or should be it, inject VideoGaze
-      if(message_popup != null){
+      if(message_popup != null) {
         inject_videogaze(function() {
           handler_port_popup({
             tab_id: tab_id,
@@ -164,10 +180,8 @@
         }, tab_id);
       }
 
-      // URL analyzed; discard it after processing
-      if(new_url_detected[tab_id]) {
-        new_url_detected[tab_id] = false;
-      }
+      if(tab_newloading[tab_id]) delete tab_newloading[tab_id];
+      if(tab_reloading[tab_id]) delete tab_reloading[tab_id];
     }
   });
 
@@ -203,6 +217,7 @@
     }
     // If message has CODE, store roomcode and tell popup script to show the roomcode
     if(packet.message.code) {
+      video_tabs[packet.tab_id] = define_object(video_tabs[packet.tab_id]);
       video_tabs[packet.tab_id].roomcode = packet.message.code;
       if(port_popup[packet.tab_id])
         port_popup[packet.tab_id].postMessage({video_tabs: video_tabs, tab_id: packet.tab_id});

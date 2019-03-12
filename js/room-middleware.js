@@ -7,11 +7,9 @@ var Room_Maker = (function() {
     if(roomcode === undefined) roomcode = null;
 
     Room.on_url_change_listener(function(new_url) {
-      console.log(current_video_url())
       if(current_video_url() !== new_url)
         window.location = new_url;
     });
-    console.log(current_video_url());
 
     Room.init(GLOBAL.backend_url, roomcode, {'stream_type': 'extension', 'stream_key': current_video_url()}, function(response) {
       if(response.status == 1) callback(response.message.roomcode);
