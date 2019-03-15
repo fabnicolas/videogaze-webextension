@@ -116,7 +116,7 @@
   var tab_reloading = {}, tab_newloading = {};
 
   chrome.webNavigation.onHistoryStateUpdated.addListener(function(details) {
-    //console.log("Push/ReplaceState: " + details.url + ", indexOf=" + details.url.indexOf('#roomcode='));
+    console.log("Push/ReplaceState: " + details.url + ", indexOf=" + details.url.indexOf('#roomcode='));
     tab_id = details.tabId;
     if(details.url.indexOf('#roomcode=') > 0) {
       delete tab_newloading[tab_id];
@@ -126,7 +126,8 @@
 
   // Listen for tabs changes (URL changed, refresh, etc.)
   chrome.tabs.onUpdated.addListener(function(tab_id, change_info, tab) {
-    //console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
+    debugger;
+    console.log("TAB_ID=" + tab_id + ", status=" + change_info.status + ", URL changed: " + change_info.url)
 
     // When page reloads, set reload flag on that tab and determine if URL has changed
     if(change_info.status == "loading") {
@@ -150,6 +151,7 @@
         if(video_tabs[tab_id]) previous_roomcode = video_tabs[tab_id].roomcode;
         if(previous_roomcode != null) {
           // Room was existing
+          debugger;
           message_popup = {action: 'change_room', roomcode: previous_roomcode};
         } else {
           // Room was NOT existing

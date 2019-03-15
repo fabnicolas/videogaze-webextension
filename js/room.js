@@ -65,7 +65,7 @@ var RoomHTTPEvents = (function() {
       if(xhr.readyState == 4) {
         if(xhr.status == 200) {
           try {
-            console.log('xhr_response', method, url, JSON.parse(xhr.response).message);
+            console.log('xhr_response', method, url, JSON.parse(xhr.response));
             if(callback != null) callback(JSON.parse(xhr.response));
             if(repeat_checktype(repeat_data, 'always')) {
               setTimeout(xhr_fetch_data(method, url, form_data, xhr_timeout, callback), repeat_data.repeat_time);
